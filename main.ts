@@ -13,7 +13,8 @@ import {
     NamespaceDeclaration,
     SourceFile,
     Type,
-    ParameterDeclaration
+    ParameterDeclaration,
+    TypeAliasDeclaration
 } from 'ts-simple-ast';
 
 import * as os from 'os';
@@ -29,8 +30,7 @@ const normalizeName = (text: string) => text
     .replace(/[\$|\.|\-]/g, '_')
     .replace(/["|']/g, '');
 
-const globalNames: string[] = [];
-const getAsUniqueName = (name: string): string => {
+const getAsUniqueName = (globalNames: string[], name: string): string => {
     name = lowerCap(name);
     name = [
         'sig',
@@ -54,7 +54,8 @@ const getAsUniqueName = (name: string): string => {
     return name;
 };
 
-type TypeKind = InterfaceDeclaration
+type TypeKind = NamespaceDeclaration
+    | InterfaceDeclaration
     | ClassDeclaration
     | EnumDeclaration
     | PropertySignature
@@ -62,7 +63,8 @@ type TypeKind = InterfaceDeclaration
     | MethodSignature
     | MethodDeclaration
     | VariableDeclaration
-    | FunctionDeclaration;
+    | FunctionDeclaration
+    | TypeAliasDeclaration;
 
 type TsNode = {
     ns: string[];
@@ -98,7 +100,7 @@ class Writer {
     }
 
     writeReType(typ: TsNode): void {
-        this.write(`t_${normalizeName(`${typ.ns}_${typ.id}`)}`);
+        this.write(`t_${normalizeName(`${(typ.ns.length > 0 ? typ.ns.join('_') + '_' : '')}${typ.id}`)}`);
     }
 
     writeType(nodeType: Type, types: TsNode[]): void {
@@ -115,26 +117,29 @@ class Writer {
 
             // TODO: how to define if it's supposed to be an int or float?
             case 'number':
-                this.write('int');
+                this.write('float');
                 return;
+        }
 
-            case 'any':
-                this.write('\'a');
-                return;
+        // TODO: the code bellow need to be replaced to something more stable
+        // it needs to have a better way to identify the type reference
+        const tps = types.filter(tp => tp.id == typ);
+        if (tps.length > 0) {
+            this.writeReType(tps[0]);
+            return;
         }
 
         this.write('t_TODO');
     }
 
     writeArgumentsToMethodDecl(pars: ParameterDeclaration[], types: TsNode[]): void {
-        this.write(`(_inst: t`);
+        this.write(`t`);
         if (pars.length > 0) {
             pars.forEach(p => {
-                this.write(`, _${p.getName()}: `);
+                this.write(` => `);
                 this.writeType(p.getType(), types);
             });
         }
-        this.write(`)`);
     }
 
     writeArgumentsToFunctionDecl(pars: ParameterDeclaration[], types: TsNode[]): void {
@@ -164,55 +169,125 @@ class Writer {
         this.write(`)`);
     }
 
+    writeTypeCtor(typ: TsNode, props: TsNode[], types: TsNode[]): void {
+        this.write(`let make: `);
+
+        this.write(`(`);
+        if (props.length > 0) {
+            props.forEach((p, i) => {
+                if (i > 0) {
+                    this.write(`, `);
+                }
+                this.write(`~${p.id}: `);
+                this.writeType(p.node.getType(), types);
+            });
+        }
+        this.write(`) => t = `);
+
+        this.write(`[%bs.raw {| `);
+
+        this.increaseIndent();
+        this.writeNewLine();
+
+        this.write(`function (`);
+
+        this.increaseIndent();
+        this.writeNewLine();
+
+        if (props.length > 0) {
+            props.forEach((p, i) => {
+                if (i > 0) {
+                    this.write(`, `);
+                    this.writeNewLine();
+                }
+                this.write(`${p.id}`);
+            });
+        }
+
+        this.decreaseIndent();
+        this.writeNewLine();
+
+        this.write(`) {`);
+
+        this.increaseIndent();
+        this.writeNewLine();
+
+        this.write(`return {`);
+
+        this.increaseIndent();
+        this.writeNewLine();
+
+        if (props.length > 0) {
+            props.forEach((p, i) => {
+                if (i > 0) {
+                    this.write(`, `);
+                    this.writeNewLine();
+                }
+                this.write(`${p.id}: ${p.id}`);
+            });
+        }
+
+        this.decreaseIndent();
+        this.writeNewLine();
+
+        this.write(`}`);
+
+        this.decreaseIndent();
+        this.writeNewLine();
+
+        this.write(`}`);
+
+        this.decreaseIndent();
+        this.writeNewLine();
+
+        this.write(`|}]`);
+    }
+
     writeModuleNameFrom(typ: TsNode): void {
         this.write(capitalize(normalizeName(typ.id)));
     }
 
     writeModuleName(ns: string[]): void {
-        this.write(capitalize(normalizeName(ns.join('.'))));
+        this.write(capitalize(normalizeName(ns[ns.length - 1])));
     }
 
-    writeGetPropertyDecl(typ: TsNode, types: TsNode[]): void {
-        this.write(`let ${getAsUniqueName(`get${capitalize(typ.id)}`)} = (_inst: t): `);
+    writeGetPropertyDecl(typ: TsNode, types: TsNode[], globalNames: string[]): void {
+        this.write(`[@bs.get] external ${getAsUniqueName(globalNames, `get${capitalize(typ.id)}`)}: t => `);
         this.writeType(typ.node.getType(), types);
-        this.write(` => [%bs.raw {| _inst.${typ.id} |}];`);
+        this.write(` = "${typ.id}";`);
     }
 
-    writeSetPropertyDecl(typ: TsNode, types: TsNode[]): void {
-        this.write(`let ${getAsUniqueName(`set${capitalize(typ.id)}`)} = (_inst: t, _value: `);
+    writeSetPropertyDecl(typ: TsNode, types: TsNode[], globalNames: string[]): void {
+        this.write(`[@bs.send] external ${getAsUniqueName(globalNames, `set${capitalize(typ.id)}`)}: t => `);
         this.writeType(typ.node.getType(), types);
-        this.write(`): `);
-        this.writeType(typ.node.getType(), types);
-        this.write(` => [%bs.raw {| _inst.${typ.id} = _value |}];`);
+        this.write(` => unit = "${typ.id}";`);
     }
 
-    writePropertyDecls(typ: TsNode, types: TsNode[]): void {
-        this.writeGetPropertyDecl(typ, types);
+    writePropertyDecls(typ: TsNode, types: TsNode[], globalNames: string[]): void {
+        this.writeGetPropertyDecl(typ, types, globalNames);
         this.writeNewLine();
-        this.writeSetPropertyDecl(typ, types);
+        this.writeSetPropertyDecl(typ, types, globalNames);
         this.writeNewLine();
     }
 
-    writeMethodDecl(typ: TsNode, types: TsNode[]): void {
-        this.write(`let ${getAsUniqueName(`${lowerCap(typ.id)}`)} = `);
+    writeMethodDecl(typ: TsNode, types: TsNode[], globalNames: string[]): void {
+        this.write(`[@bs.send.pipe: t] external ${getAsUniqueName(globalNames, `${lowerCap(typ.id)}`)}: `);
         this.writeArgumentsToMethodDecl((typ.node as MethodSignature).getParameters(), types);
-        this.write(`: `);
+        this.write(` => `);
         this.writeType((typ.node as MethodSignature).getReturnType(), types);
-        this.write(` => [%bs.raw {| _inst.${typ.id}`);
-        this.writeArgumentsToFunctionCall((typ.node as MethodSignature).getParameters());
-        this.write(` |}];`);
+        this.write(` = "${typ.id}";`);
     }
 
-    writeFunctionDecl(typ: TsNode, types: TsNode[], ns: string[]): void {
-        this.write(`[@bs.module "${normalizeName(ns.join('.'))}"] external ${getAsUniqueName(`${lowerCap(typ.id)}`)}: `);
+    writeFunctionDecl(typ: TsNode, types: TsNode[], ns: string[], globalNames: string[]): void {
+        this.write(`[@bs.module "${ns.map(n => normalizeName(n)).join('/')}"] external ${getAsUniqueName(globalNames, `${lowerCap(typ.id)}`)}: `);
         this.writeArgumentsToFunctionDecl((typ.node as MethodSignature).getParameters(), types);
         this.write(` => `);
         this.writeType((typ.node as MethodSignature).getReturnType(), types);
         this.write(` = "${typ.id}";`);
     }
 
-    writeVariableDecl(typ: TsNode, types: TsNode[], ns: string[]): void {
-        this.write(`[@bs.module "${normalizeName(ns.join('.'))}"] external ${getAsUniqueName(`${lowerCap(typ.id)}`)}: `);
+    writeVariableDecl(typ: TsNode, types: TsNode[], ns: string[], globalNames: string[]): void {
+        this.write(`[@bs.module "${ns.map(n => normalizeName(n)).join('/')}"] external ${getAsUniqueName(globalNames, `${lowerCap(typ.id)}`)}: `);
         this.writeType(typ.node.getType(), types);
         this.write(` = "${typ.id}";`);
     }
@@ -273,11 +348,18 @@ const exptractTsTypes = (types: TsNode[], nsDecl: NamespaceDeclaration | SourceF
     const nsName = nsDecl instanceof SourceFile ? [] : [nsDecl.getName()];
     const ns = prevNs.concat(nsName);
 
+    if (ns.length > 0) {
+        types = addType(types, ns, nsDecl as NamespaceDeclaration);
+    }
+
     nsDecl.getVariableDeclarations()
         .forEach(varDcl => types = addType(types, ns, varDcl));
 
     nsDecl.getFunctions()
         .forEach(funDecl => types = addType(types, ns, funDecl));
+
+    nsDecl.getTypeAliases()
+        .forEach(talias => types = addType(types, ns, talias));
 
     nsDecl.getInterfaces()
         .forEach(interf => {
@@ -299,76 +381,115 @@ const exptractTsTypes = (types: TsNode[], nsDecl: NamespaceDeclaration | SourceF
     return types;
 }
 
-const startsWithNs = (typNs: string[], ns: string[]) => ns.join('.').indexOf(typNs.join('.')) === 0
+const startsWithNs = (ns1: string[], ns2: string[]) => ns2.join('.').indexOf(ns1.join('.')) === 0
 
-function writeVars(vars: TsNode[], declars: TsNode[], writer: Writer, ns: string[]) {
+const compareNs = (typNs: string[], ns: string[]) => JSON.stringify(typNs) === JSON.stringify(ns);
+
+function writeVars(vars: TsNode[], declars: TsNode[], writer: Writer, ns: string[], globalNames: string[]) {
     vars.forEach(f => {
         writer.writeNewLine();
-        writer.writeVariableDecl(f, declars, ns);
+        writer.writeVariableDecl(f, declars, ns, globalNames);
     });
 };
 
-function writeFuncs(funcs: TsNode[], declars: TsNode[], writer: Writer, ns: string[]) {
+function writeFuncs(funcs: TsNode[], declars: TsNode[], writer: Writer, ns: string[], globalNames: string[]) {
     funcs.forEach(f => {
         writer.writeNewLine();
-        writer.writeFunctionDecl(f, declars, ns);
+        writer.writeFunctionDecl(f, declars, ns, globalNames);
     });
 };
 
-function writeProps(props: TsNode[], declars: TsNode[], writer: Writer) {
+function writeProps(props: TsNode[], declars: TsNode[], writer: Writer, globalNames: string[]) {
+
     props.forEach(p => {
         writer.writeNewLine();
-        writer.writeNewLine();
-        writer.writePropertyDecls(p, declars);
+        writer.writePropertyDecls(p, declars, globalNames);
     });
 };
 
-function writeMethods(methods: TsNode[], declars: TsNode[], writer: Writer) {
+function writeMethods(methods: TsNode[], declars: TsNode[], writer: Writer, globalNames: string[]) {
     methods.forEach(m => {
         writer.writeNewLine();
-        writer.writeMethodDecl(m, declars);
+        writer.writeMethodDecl(m, declars, globalNames);
     });
 };
 
-function writeModules(ns: string[], declars: TsNode[], writer: Writer) {
+function writeModules(ns: string[], declars: TsNode[], writer: Writer, globalNames: string[]) {
     const vars = declars
         .filter(t => t.kind === SyntaxKind.VariableDeclaration
-            && startsWithNs(t.ns, ns));
+            && compareNs(t.ns, ns));
 
-    writeVars(vars, declars, writer, ns);
+    writeVars(vars, declars, writer, ns, globalNames);
 
     const funcs = declars
         .filter(t => t.kind === SyntaxKind.FunctionDeclaration
-            && startsWithNs(t.ns, ns));
+            && compareNs(t.ns, ns));
 
-    writeFuncs(funcs, declars, writer, ns);
+    writeFuncs(funcs, declars, writer, ns, globalNames);
 
     const moduleTypes = declars
-        .filter(t => startsWithNs(t.ns, ns)
-            && (t.kind === SyntaxKind.InterfaceDeclaration || t.kind === SyntaxKind.ClassDeclaration));
+        .filter(t => compareNs(t.ns, ns)
+            && (
+                t.kind === SyntaxKind.InterfaceDeclaration
+                || t.kind === SyntaxKind.ClassDeclaration
+            )
+        );
 
     moduleTypes.forEach(typ => {
+        const moduleGlobalNames: string[] = [];
+
         writer.writeNewLine();
         writer.writeBeginModuleFromType(typ);
         writer.writeNewLine();
 
         writer.writeAbstractTypeDeclaration(typ);
+        writer.writeNewLine();
 
         const props = declars
             .filter(t => t.kind === SyntaxKind.PropertySignature
-                && startsWithNs(t.ns, ns.concat([typ.id])));
+                && compareNs(t.ns, ns.concat([typ.id])));
 
-        writeProps(props, declars, writer);
+        writeProps(props, declars, writer, moduleGlobalNames);
 
         const methods = declars
             .filter(t => t.kind === SyntaxKind.MethodSignature
-                && startsWithNs(t.ns, ns.concat([typ.id])));
+                && compareNs(t.ns, ns.concat([typ.id])));
 
-        writeMethods(methods, declars, writer);
+        writeMethods(methods, declars, writer, moduleGlobalNames);
 
-        writer.writeEndModule()
+        // NOTE: in case of an object with just properties we can create a constructor
+        if (methods.length == 0) {
+            writer.writeNewLine();
+            writer.writeNewLine();
+
+            writer.writeTypeCtor(typ, props, declars);
+        }
+
+        writer.writeEndModule();
+    });
+
+    const nss = uniq(
+        declars
+            .filter(t => checkValidSyntaxKind(t) && t.ns.length == ns.length + 1 && startsWithNs(ns, t.ns))
+            .map(t => t.ns));
+
+    nss.forEach(ns => {
+        writer.writeNewLine();
+
+        writer.writeBeginModuleFromNs(ns);
+        writeModules(ns, declars, writer, []);
+        writer.writeEndModule();
     });
 }
+
+const checkValidSyntaxKind = (t: TsNode) => (
+    t.kind === SyntaxKind.ClassDeclaration
+    || t.kind === SyntaxKind.InterfaceDeclaration
+    || t.kind === SyntaxKind.VariableDeclaration
+    || t.kind === SyntaxKind.MethodDeclaration
+    || t.kind === SyntaxKind.FunctionDeclaration
+    || t.kind === SyntaxKind.TypeAliasDeclaration
+);
 
 const convertToReason = (tsFile: string): string => {
     tsProject.addExistingSourceFiles(tsFile);
@@ -389,34 +510,28 @@ const convertToReason = (tsFile: string): string => {
     const types = declars
         .filter(
             decl => decl.kind === SyntaxKind.InterfaceDeclaration
-                || decl.kind === SyntaxKind.ClassDeclaration);
+                || decl.kind === SyntaxKind.ClassDeclaration
+                || decl.kind === SyntaxKind.TypeAliasDeclaration);
+
 
     types.forEach(typ => {
-        writer.writeAbstractTypeDeclaration(typ);
+        writer.write('type ');
+        writer.writeReType(typ);
+        writer.write(';');
         writer.writeNewLine();
     });
 
-    const nsList = uniq(declars
-        .filter(t =>
-            (
-                t.kind === SyntaxKind.ClassDeclaration
-                || t.kind === SyntaxKind.InterfaceDeclaration
-                || t.kind === SyntaxKind.VariableDeclaration
-                || t.kind === SyntaxKind.MethodDeclaration
-                || t.kind === SyntaxKind.FunctionDeclaration
-            )
-            && t.ns.length == 1
-        ).map(t => t.ns));
+    const nss = uniq(
+        declars
+            .filter(t => checkValidSyntaxKind(t) && t.ns.length == 0).map(t => t.ns));
 
-    nsList.forEach(ns => {
-        writer.writeBeginModuleFromNs(ns);
-        writeModules(ns, declars.filter(dcl => dcl.ns.length >= 1), writer);
-        writer.writeEndModule();
+    nss.forEach(ns => {
+        writeModules(ns, declars, writer, []);
         writer.writeNewLine();
     });
 
     return writer.getText();
 };
 
-const typs = convertToReason('example/input.d.ts');
+const typs = convertToReason(process.argv[2]);
 console.log(typs);

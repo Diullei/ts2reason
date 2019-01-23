@@ -1,1 +1,0 @@
-node_modules/.bin/ts-node main.ts > example/Output.re
