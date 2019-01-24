@@ -348,8 +348,8 @@ const exptractTsTypes = (types: TsNode[], nsDecl: NamespaceDeclaration | SourceF
     const nsName = nsDecl instanceof SourceFile ? [] : [nsDecl.getName()];
     const ns = prevNs.concat(nsName);
 
-    if (ns.length > 0) {
-        types = addType(types, ns, nsDecl as NamespaceDeclaration);
+    if (nsDecl instanceof NamespaceDeclaration) {
+        types = addType(types, ns, nsDecl);
     }
 
     nsDecl.getVariableDeclarations()
@@ -468,7 +468,7 @@ function writeModules(ns: string[], declars: TsNode[], writer: Writer, globalNam
         writer.writeEndModule();
     });
 
-    const nss = uniq(
+    let nss = uniq(
         declars
             .filter(t => checkValidSyntaxKind(t) && t.ns.length == ns.length + 1 && startsWithNs(ns, t.ns))
             .map(t => t.ns));
@@ -514,18 +514,16 @@ const convertToReason = (tsFile: string): string => {
                 || decl.kind === SyntaxKind.TypeAliasDeclaration);
 
 
-    types.forEach(typ => {
+    types.forEach((typ, i) => {
+        if (i > 0) {
+            writer.writeNewLine();
+        }
         writer.write('type ');
         writer.writeReType(typ);
         writer.write(';');
-        writer.writeNewLine();
     });
 
-    const nss = uniq(
-        declars
-            .filter(t => checkValidSyntaxKind(t) && t.ns.length == 0).map(t => t.ns));
-
-    nss.forEach(ns => {
+    [[]].forEach(ns => {
         writeModules(ns, declars, writer, []);
         writer.writeNewLine();
     });
