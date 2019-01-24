@@ -88,11 +88,11 @@ function normalizeName(name) {
   return name.replace((/[\$|\.|\-]/g), "_").replace((/["|']/g), "");
 }
 
-function toUniqueName(usedNames, candidateName) {
-  var len = List.length(List.filter((function (kw) {
+function toUniqueName(candidateName, usedNames) {
+  var match = List.length(List.filter((function (kw) {
                 return kw === $$String.uncapitalize(candidateName);
               }))(reservedWorks));
-  var name = len !== 0 ? candidateName + "_" : candidateName;
+  var name = match !== 0 ? "" + (String(candidateName) + "_") : candidateName;
   var occurrence = List.length(List.filter((function (n) {
                 return n === name;
               }))(usedNames));
@@ -100,7 +100,7 @@ function toUniqueName(usedNames, candidateName) {
     return /* tuple */[
             name + String(occurrence),
             /* :: */[
-              name + String(occurrence),
+              name,
               usedNames
             ]
           ];

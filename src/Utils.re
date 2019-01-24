@@ -44,25 +44,21 @@ let normalizeName = (name: string) =>
   |> Js.String.replaceByRe([%re "/[\$|\.|\-]/g"], "_")
   |> Js.String.replaceByRe([%re "/[\"|']/g"], "");
 
-let toUniqueName = (usedNames: list(string), candidateName: string) => {
-  let len =
-    reservedWorks
-    |> List.filter(kw => kw == candidateName->lowerFirst)
-    |> List.length;
-
+let toUniqueName = (candidateName: string, usedNames: list(string)) => {
   let name =
-    switch (len) {
+    switch (
+      reservedWorks
+      |> List.filter(kw => kw == candidateName->lowerFirst)
+      |> List.length
+    ) {
     | 0 => candidateName
-    | _ => candidateName ++ "_"
+    | _ => {j|$(candidateName)_|j}
     };
 
   let occurrence = usedNames |> List.filter(n => n == name) |> List.length;
 
   switch (occurrence) {
   | 0 => (name, [name, ...usedNames])
-  | _ => (
-      name ++ string_of_int(occurrence),
-      [name ++ string_of_int(occurrence), ...usedNames],
-    )
+  | _ => (name ++ string_of_int(occurrence), [name, ...usedNames])
   };
 };
