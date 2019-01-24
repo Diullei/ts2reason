@@ -347,6 +347,12 @@ module SyntaxKind = {
     | [@bs.as 147] LastContextualKeyword;
 };
 
+module TsType = {
+  type t;
+
+  let getText = (_inst: t): string => [%bs.raw {| _inst.getText() |}];
+};
+
 module TypeKind = {
   type t;
 };
@@ -356,6 +362,6 @@ module TsNode = {
     ns: array(string),
     id: string,
     kind: SyntaxKind.t,
-    node: TypeKind.t,
+    node: option(TypeKind.t),
   };
 };

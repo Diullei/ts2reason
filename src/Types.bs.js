@@ -363,11 +363,18 @@ var SyntaxKind = /* module */[
   /* tFromJs */tFromJs
 ];
 
+function getText(_inst) {
+  return ( _inst.getText() );
+}
+
+var TsType = /* module */[/* getText */getText];
+
 var TypeKind = /* module */[];
 
 var TsNode = /* module */[];
 
 exports.SyntaxKind = SyntaxKind;
+exports.TsType = TsType;
 exports.TypeKind = TypeKind;
 exports.TsNode = TsNode;
 /* No side effect */
