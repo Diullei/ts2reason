@@ -1,15 +1,3 @@
-let rec range = (start: int, end_: int) =>
-  if (start >= end_) {
-    [];
-  } else {
-    [start, ...range(start + 1, end_)];
-  };
-
-let repeat = (pattern: string, amount: int) =>
-  range(0, amount - 1)
-  |> List.map(_ => pattern)
-  |> List.fold_left((++), pattern);
-
 type writerState = {
   nl: string,
   code: string,
@@ -35,7 +23,7 @@ let writeNewLine = (state: writerState) =>
   |> (
     state =>
       switch (state.currentIdentation) {
-      | 0 => repeat(" ", state.currentIdentation) |> state->write
+      | 0 => ' ' |> String.make(state.currentIdentation) |> state->write
       | _ => state
       }
   );
