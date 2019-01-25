@@ -303,3 +303,6 @@ let writeBeginModuleFromType = (state: writerState, typ: TsNode.t) =>
 
 let writeEndModule = (state: writerState) =>
   state->decreaseIndent->writeNewLine->write("}");
+
+let writeAbstractTypeDeclaration = (state: writerState, typ: TsNode.t) =>
+  state->write("type t = ")->writeReasonType(typ)->write(";");

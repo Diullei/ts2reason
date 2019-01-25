@@ -439,4 +439,22 @@ describe("Writer", () => {
       |> toEqual("\nmodule MyClass = {\n}");
     })
   );
+
+  Expect.(
+    test("writeAbstractTypeDeclaration", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeAbstractTypeDeclaration(
+            makeFakeTsNode(
+              [||],
+              "myClass",
+              Types.SyntaxKind.ClassDeclaration,
+            ),
+          )
+        ->Writer.getCode,
+      )
+      |> toEqual("type t = t_myClass;");
+    })
+  );
 });

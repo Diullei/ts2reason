@@ -236,9 +236,13 @@ describe("Writer", (function () {
                                             "ccc"
                                           ])))));
               }));
-        return Jest.test("writeBeginModuleFromType", (function (param) {
+        Jest.test("writeBeginModuleFromType", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("\nmodule MyClass = {\n}", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeEndModule(Writer$Ts2reason00.writeBeginModuleFromType(wState, makeFakeTsNode(/* array */[], "myClass", /* ClassDeclaration */240))))));
+              }));
+        return Jest.test("writeAbstractTypeDeclaration", (function (param) {
                       var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
-                      return Jest.Expect[/* toEqual */12]("\nmodule MyClass = {\n}", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeEndModule(Writer$Ts2reason00.writeBeginModuleFromType(wState, makeFakeTsNode(/* array */[], "myClass", /* ClassDeclaration */240))))));
+                      return Jest.Expect[/* toEqual */12]("type t = t_myClass;", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeAbstractTypeDeclaration(wState, makeFakeTsNode(/* array */[], "myClass", /* ClassDeclaration */240)))));
                     }));
       }));
 

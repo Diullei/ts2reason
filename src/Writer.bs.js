@@ -213,6 +213,10 @@ function writeEndModule(state) {
   return write(writeNewLine(decreaseIndent(state)), "}");
 }
 
+function writeAbstractTypeDeclaration(state, typ) {
+  return write(writeReasonType(write(state, "type t = "), typ), ";");
+}
+
 exports.make = make;
 exports.write = write;
 exports.increaseIndent = increaseIndent;
@@ -240,4 +244,5 @@ exports.writeVariableDecl = writeVariableDecl;
 exports.writeBeginModuleFromNs = writeBeginModuleFromNs;
 exports.writeBeginModuleFromType = writeBeginModuleFromType;
 exports.writeEndModule = writeEndModule;
+exports.writeAbstractTypeDeclaration = writeAbstractTypeDeclaration;
 /* No side effect */
