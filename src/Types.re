@@ -371,6 +371,6 @@ module TsNode = {
     ns: array(string),
     id: string,
     kind: SyntaxKind.t,
-    node: option(TypeKind.t),
+    node: TypeKind.t,
   };
 };

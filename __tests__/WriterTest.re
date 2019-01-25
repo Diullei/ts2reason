@@ -7,7 +7,7 @@ let makeFakeTsNode =
   ns,
   id,
   kind,
-  node: None,
+  node: [%bs.raw {|{getType: () => ({ getText: () => "string" })}|}],
 };
 
 let makeFakeTsType = (_typ: string): Types.TsType.t => [%bs.raw
@@ -261,15 +261,11 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeGetPropertyDecl(
-            {
-              ns: [||],
-              id: "propName",
-              kind: Types.SyntaxKind.PropertyDeclaration,
-              node:
-                Some(
-                  [%bs.raw {|{getType: () => ({ getText: () => "string" })}|}],
-                ),
-            }: Types.TsNode.t,
+            makeFakeTsNode(
+              [||],
+              "propName",
+              Types.SyntaxKind.PropertyDeclaration,
+            ),
             [||],
             [],
           )

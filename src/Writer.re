@@ -136,23 +136,18 @@ let writeGetPropertyDecl =
       types: array(TsNode.t),
       names: list(string),
     ) => {
-  switch (typ.node) {
-  | Some(node) =>
-    let (name, names) =
-      ("get" ++ Utils.capitalize(typ.id))->Utils.toUniqueName(names);
+  let (name, names) =
+    ("get" ++ Utils.capitalize(typ.id))->Utils.toUniqueName(names);
 
-    let state =
-      state
-      ->write("let ")
-      ->write(name)
-      ->write(" = (_inst: t): ")
-      ->writeType(node->TypeKind.getType, types)
-      ->write(" => [%bs.raw {| _inst.")
-      ->write(typ.id)
-      ->write(" |}];");
+  let state =
+    state
+    ->write("let ")
+    ->write(name)
+    ->write(" = (_inst: t): ")
+    ->writeType(typ.node->TypeKind.getType, types)
+    ->write(" => [%bs.raw {| _inst.")
+    ->write(typ.id)
+    ->write(" |}];");
 
-    (state, names);
-
-  | _ => (state->write("!ERROR!"), names)
-  };
+  (state, names);
 };
