@@ -179,9 +179,13 @@ describe("Writer", (function () {
                                         "ccc"
                                       ]))));
               }));
-        return Jest.test("writeGetPropertyDecl", (function (param) {
+        Jest.test("writeGetPropertyDecl", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("let getPropName = (_inst: t): string => [%bs.raw {| _inst.propName |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeGetPropertyDecl(wState, makeFakeTsNode(/* array */[], "propName", /* PropertyDeclaration */154), /* array */[], /* [] */0)[0])));
+              }));
+        return Jest.test("writeSetPropertyDecl", (function (param) {
                       var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
-                      return Jest.Expect[/* toEqual */12]("let getPropName = (_inst: t): string => [%bs.raw {| _inst.propName |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeGetPropertyDecl(wState, makeFakeTsNode(/* array */[], "propName", /* PropertyDeclaration */154), /* array */[], /* [] */0)[0])));
+                      return Jest.Expect[/* toEqual */12]("let setPropName = (_inst: t, _value: string): unit => [%bs.raw {| _inst.propName = _value |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeSetPropertyDecl(wState, makeFakeTsNode(/* array */[], "propName", /* PropertyDeclaration */154), /* array */[], /* [] */0)[0])));
                     }));
       }));
 

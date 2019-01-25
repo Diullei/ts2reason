@@ -277,4 +277,27 @@ describe("Writer", () => {
          );
     })
   );
+
+  Expect.(
+    test("writeSetPropertyDecl", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeSetPropertyDecl(
+            makeFakeTsNode(
+              [||],
+              "propName",
+              Types.SyntaxKind.PropertyDeclaration,
+            ),
+            [||],
+            [],
+          )
+        ->(((s, _)) => s)
+        ->Writer.getCode,
+      )
+      |> toEqual(
+           "let setPropName = (_inst: t, _value: string): unit => [%bs.raw {| _inst.propName = _value |}];",
+         );
+    })
+  );
 });

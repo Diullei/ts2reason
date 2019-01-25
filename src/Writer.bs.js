@@ -138,6 +138,26 @@ function writeGetPropertyDecl(state, typ, types, names) {
         ];
 }
 
+function writeSetPropertyDecl(state, typ, types, names) {
+  var match = Utils$Ts2reason00.toUniqueName("set" + Utils$Ts2reason00.capitalize(typ[/* id */1]), names);
+  var state$1 = write(write(write(writeType(write(write(write(state, "let "), match[0]), " = (_inst: t, _value: "), Types$Ts2reason00.TypeKind[/* getType */0](typ[/* node */3]), types), "): unit => [%bs.raw {| _inst."), typ[/* id */1]), " = _value |}];");
+  return /* tuple */[
+          state$1,
+          match[1]
+        ];
+}
+
+function writePropertyDecls(state, typ, types, names) {
+  var match = writeGetPropertyDecl(state, typ, types, names);
+  var state$1 = writeNewLine(match[0]);
+  var match$1 = writeSetPropertyDecl(state$1, typ, types, match[1]);
+  var state$2 = writeNewLine(match$1[0]);
+  return /* tuple */[
+          state$2,
+          match$1[1]
+        ];
+}
+
 exports.make = make;
 exports.write = write;
 exports.increaseIndent = increaseIndent;
@@ -156,4 +176,6 @@ exports.writeArgumentsToFunctionDecl = writeArgumentsToFunctionDecl;
 exports.writeModuleNameFrom = writeModuleNameFrom;
 exports.writeModuleName = writeModuleName;
 exports.writeGetPropertyDecl = writeGetPropertyDecl;
+exports.writeSetPropertyDecl = writeSetPropertyDecl;
+exports.writePropertyDecls = writePropertyDecls;
 /* No side effect */

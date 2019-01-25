@@ -151,3 +151,42 @@ let writeGetPropertyDecl =
 
   (state, names);
 };
+
+let writeSetPropertyDecl =
+    (
+      state: writerState,
+      typ: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  let (name, names) =
+    ("set" ++ Utils.capitalize(typ.id))->Utils.toUniqueName(names);
+
+  let state =
+    state
+    ->write("let ")
+    ->write(name)
+    ->write(" = (_inst: t, _value: ")
+    ->writeType(typ.node->TypeKind.getType, types)
+    ->write("): unit => [%bs.raw {| _inst.")
+    ->write(typ.id)
+    ->write(" = _value |}];");
+
+  (state, names);
+};
+
+let writePropertyDecls =
+    (
+      state: writerState,
+      typ: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  let (state, names) = state->writeGetPropertyDecl(typ, types, names);
+  let state = state->writeNewLine;
+
+  let (state, names) = state->writeSetPropertyDecl(typ, types, names);
+  let state = state->writeNewLine;
+
+  (state, names);
+};
