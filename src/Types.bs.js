@@ -386,7 +386,19 @@ function getType$1(_inst) {
   return ( _inst.getType() );
 }
 
-var TypeKind = /* module */[/* getType */getType$1];
+function getParameters(_inst) {
+  return ( _inst.getParameters() );
+}
+
+function getReturnType(_inst) {
+  return ( _inst.getType() );
+}
+
+var TypeKind = /* module */[
+  /* getType */getType$1,
+  /* getParameters */getParameters,
+  /* getReturnType */getReturnType
+];
 
 var TsNode = /* module */[];
 

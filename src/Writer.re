@@ -121,6 +121,23 @@ let writeArgumentsToFunctionDecl =
   |> (((s, _)) => s->write(")"));
 };
 
+let writeArgumentsToFunctionCall =
+    (state: writerState, pars: array(TsParDecl.t)) => {
+  let state = state->write("(");
+  pars
+  |> Array.fold_left(
+       ((state, i), par) =>
+         (
+           state
+           ->writeIf(i == 0, "", ", ")
+           ->writeParameterName(par->TsParDecl.getName, true),
+           i + 1,
+         ),
+       (state, 0),
+     )
+  |> (((s, _)) => s->write(")"));
+};
+
 let writeModuleNameFrom = (state: writerState, typ: TsNode.t) =>
   state->write(Utils.capitalize(Utils.normalizeName(typ.id)));
 
@@ -187,6 +204,83 @@ let writePropertyDecls =
 
   let (state, names) = state->writeSetPropertyDecl(typ, types, names);
   let state = state->writeNewLine;
+
+  (state, names);
+};
+
+let writeMethodDecl =
+    (
+      state: writerState,
+      typ: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  let (name, names) = Utils.lowerFirst(typ.id)->Utils.toUniqueName(names);
+
+  let state =
+    state
+    ->write("let ")
+    ->write(name)
+    ->write(" = ")
+    ->writeArgumentsToMethodDecl(typ.node->TypeKind.getParameters, types)
+    ->write(": ")
+    ->writeType(typ.node->TypeKind.getReturnType, types)
+    ->write(" => [%bs.raw {| _inst.")
+    ->write(typ.id)
+    ->writeArgumentsToFunctionCall(typ.node->TypeKind.getParameters)
+    ->write(" |}];");
+
+  (state, names);
+};
+
+let writeFunctionDecl =
+    (
+      state: writerState,
+      typ: TsNode.t,
+      types: array(TsNode.t),
+      ns: array(string),
+      names: list(string),
+    ) => {
+  let (name, names) = Utils.lowerFirst(typ.id)->Utils.toUniqueName(names);
+
+  let state =
+    state
+    ->write("[@bs.module \"")
+    ->write(Utils.normalizeName(ns |> Array.to_list |> String.concat(".")))
+    ->write("\"] external ")
+    ->write(name)
+    ->write(": ")
+    ->writeArgumentsToFunctionDecl(typ.node->TypeKind.getParameters, types)
+    ->write(" => ")
+    ->writeType(typ.node->TypeKind.getReturnType, types)
+    ->write(" = \"")
+    ->write(typ.id)
+    ->write("\"");
+
+  (state, names);
+};
+
+let writeVariableDecl =
+    (
+      state: writerState,
+      typ: TsNode.t,
+      types: array(TsNode.t),
+      ns: array(string),
+      names: list(string),
+    ) => {
+  let (name, names) = Utils.lowerFirst(typ.id)->Utils.toUniqueName(names);
+
+  let state =
+    state
+    ->write("[@bs.module \"")
+    ->write(Utils.normalizeName(ns |> Array.to_list |> String.concat(".")))
+    ->write("\"] external ")
+    ->write(name)
+    ->write(": ")
+    ->writeType(typ.node->TypeKind.getType, types)
+    ->write(" = \"")
+    ->write(typ.id)
+    ->write("\"");
 
   (state, names);
 };

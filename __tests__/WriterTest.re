@@ -7,7 +7,19 @@ let makeFakeTsNode =
   ns,
   id,
   kind,
-  node: [%bs.raw {|{getType: () => ({ getText: () => "string" })}|}],
+  node: [%bs.raw
+    {|
+    {
+      getType: () => ({ getText: () => "string" }),
+      getParameters: () => [
+        ({ getType: () => ({ getText: () => "string" }), getName: () => "arg01" }),
+        ({ getType: () => ({ getText: () => "number" }), getName: () => "arg02" }),
+        ({ getType: () => ({ getText: () => "boolean" }), getName: () => "arg03" }),
+      ],
+      getReturnType: () => ({ getText: () => "boolean" }),
+    }
+    |}
+  ],
 };
 
 let makeFakeTsType = (_typ: string): Types.TsType.t => [%bs.raw
@@ -226,6 +238,30 @@ describe("Writer", () => {
   );
 
   Expect.(
+    testAll(
+      "writeArgumentsToFunctionCall",
+      [
+        ([||], "()"),
+        (
+          [|
+            makeFakeTsParDec("param01", "number"),
+            makeFakeTsParDec("param02", "boolean"),
+            makeFakeTsParDec("param03", "string"),
+          |],
+          "(_param01, _param02, _param03)",
+        ),
+      ],
+      ((parList, output)) =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        ->Writer.writeArgumentsToFunctionCall(parList)
+        ->Writer.getCode,
+      )
+      |> toEqual(output)
+    )
+  );
+
+  Expect.(
     test("writeModuleNameFrom", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
       expect(
@@ -297,6 +333,77 @@ describe("Writer", () => {
       )
       |> toEqual(
            "let setPropName = (_inst: t, _value: string): unit => [%bs.raw {| _inst.propName = _value |}];",
+         );
+    })
+  );
+
+  Expect.(
+    test("writeMethodDecl", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeMethodDecl(
+            makeFakeTsNode(
+              [||],
+              "myFunc",
+              Types.SyntaxKind.MethodDeclaration,
+            ),
+            [||],
+            [],
+          )
+        ->(((s, _)) => s)
+        ->Writer.getCode,
+      )
+      |> toEqual(
+           "let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): string => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];",
+         );
+    })
+  );
+
+  Expect.(
+    test("writeFunctionDecl", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeFunctionDecl(
+            makeFakeTsNode(
+              [||],
+              "myFunc",
+              Types.SyntaxKind.FunctionDeclaration,
+            ),
+            [||],
+            [|"myModule"|],
+            [],
+          )
+        ->(((s, _)) => s)
+        ->Writer.getCode,
+      )
+      |> toEqual(
+           "[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => string = \"myFunc\"",
+         );
+    })
+  );
+
+  Expect.(
+    test("writeVariableDecl", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeVariableDecl(
+            makeFakeTsNode(
+              [||],
+              "myVar",
+              Types.SyntaxKind.VariableDeclaration,
+            ),
+            [||],
+            [|"myModule"|],
+            [],
+          )
+        ->(((s, _)) => s)
+        ->Writer.getCode,
+      )
+      |> toEqual(
+           "[@bs.module \"myModule\"] external myVar: string = \"myVar\"",
          );
     })
   );

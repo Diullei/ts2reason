@@ -10,7 +10,17 @@ function makeFakeTsNode(ns, id, kind) {
           /* ns */ns,
           /* id */id,
           /* kind */kind,
-          /* node */({getType: () => ({ getText: () => "string" })})
+          /* node */(
+    {
+      getType: () => ({ getText: () => "string" }),
+      getParameters: () => [
+        ({ getType: () => ({ getText: () => "string" }), getName: () => "arg01" }),
+        ({ getType: () => ({ getText: () => "number" }), getName: () => "arg02" }),
+        ({ getType: () => ({ getText: () => "boolean" }), getName: () => "arg03" }),
+      ],
+      getReturnType: () => ({ getText: () => "boolean" }),
+    }
+    )
         ];
 }
 
@@ -167,6 +177,25 @@ describe("Writer", (function () {
             ], (function (param) {
                 return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeArgumentsToFunctionDecl(Writer$Ts2reason00.make(Os.EOL, "", 0), param[0], /* array */[]))));
               }));
+        Jest.testAll("writeArgumentsToFunctionCall", /* :: */[
+              /* tuple */[
+                /* array */[],
+                "()"
+              ],
+              /* :: */[
+                /* tuple */[
+                  /* array */[
+                    makeFakeTsParDec("param01", "number"),
+                    makeFakeTsParDec("param02", "boolean"),
+                    makeFakeTsParDec("param03", "string")
+                  ],
+                  "(_param01, _param02, _param03)"
+                ],
+                /* [] */0
+              ]
+            ], (function (param) {
+                return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeArgumentsToFunctionCall(Writer$Ts2reason00.make(Os.EOL, "", 0), param[0]))));
+              }));
         Jest.test("writeModuleNameFrom", (function (param) {
                 var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
                 return Jest.Expect[/* toEqual */12]("MyModule", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeModuleNameFrom(wState, makeFakeTsNode(/* array */[], "'myModule'", /* InterfaceDeclaration */241)))));
@@ -183,9 +212,21 @@ describe("Writer", (function () {
                 var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
                 return Jest.Expect[/* toEqual */12]("let getPropName = (_inst: t): string => [%bs.raw {| _inst.propName |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeGetPropertyDecl(wState, makeFakeTsNode(/* array */[], "propName", /* PropertyDeclaration */154), /* array */[], /* [] */0)[0])));
               }));
-        return Jest.test("writeSetPropertyDecl", (function (param) {
+        Jest.test("writeSetPropertyDecl", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("let setPropName = (_inst: t, _value: string): unit => [%bs.raw {| _inst.propName = _value |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeSetPropertyDecl(wState, makeFakeTsNode(/* array */[], "propName", /* PropertyDeclaration */154), /* array */[], /* [] */0)[0])));
+              }));
+        Jest.test("writeMethodDecl", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): string => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeMethodDecl(wState, makeFakeTsNode(/* array */[], "myFunc", /* MethodDeclaration */156), /* array */[], /* [] */0)[0])));
+              }));
+        Jest.test("writeFunctionDecl", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => string = \"myFunc\"", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeFunctionDecl(wState, makeFakeTsNode(/* array */[], "myFunc", /* FunctionDeclaration */239), /* array */[], /* array */["myModule"], /* [] */0)[0])));
+              }));
+        return Jest.test("writeVariableDecl", (function (param) {
                       var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
-                      return Jest.Expect[/* toEqual */12]("let setPropName = (_inst: t, _value: string): unit => [%bs.raw {| _inst.propName = _value |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeSetPropertyDecl(wState, makeFakeTsNode(/* array */[], "propName", /* PropertyDeclaration */154), /* array */[], /* [] */0)[0])));
+                      return Jest.Expect[/* toEqual */12]("[@bs.module \"myModule\"] external myVar: string = \"myVar\"", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeVariableDecl(wState, makeFakeTsNode(/* array */[], "myVar", /* VariableDeclaration */237), /* array */[], /* array */["myModule"], /* [] */0)[0])));
                     }));
       }));
 

@@ -3,6 +3,7 @@
 
 var List = require("bs-platform/lib/js/list.js");
 var $$Array = require("bs-platform/lib/js/array.js");
+var $$String = require("bs-platform/lib/js/string.js");
 var Caml_array = require("bs-platform/lib/js/caml_array.js");
 var Types$Ts2reason00 = require("./Types.bs.js");
 var Utils$Ts2reason00 = require("./Utils.bs.js");
@@ -121,6 +122,21 @@ function writeArgumentsToFunctionDecl(state, pars, types) {
   return write(param[0], ")");
 }
 
+function writeArgumentsToFunctionCall(state, pars) {
+  var state$1 = write(state, "(");
+  var param = $$Array.fold_left((function (param, par) {
+          var i = param[1];
+          return /* tuple */[
+                  writeParameterName(writeIf(param[0], i === 0, "", ", "), Types$Ts2reason00.TsParDecl[/* getName */1](par), true),
+                  i + 1 | 0
+                ];
+        }), /* tuple */[
+        state$1,
+        0
+      ], pars);
+  return write(param[0], ")");
+}
+
 function writeModuleNameFrom(state, typ) {
   return write(state, Utils$Ts2reason00.capitalize(Utils$Ts2reason00.normalizeName(typ[/* id */1])));
 }
@@ -158,6 +174,33 @@ function writePropertyDecls(state, typ, types, names) {
         ];
 }
 
+function writeMethodDecl(state, typ, types, names) {
+  var match = Utils$Ts2reason00.toUniqueName(Utils$Ts2reason00.lowerFirst(typ[/* id */1]), names);
+  var state$1 = write(writeArgumentsToFunctionCall(write(write(writeType(write(writeArgumentsToMethodDecl(write(write(write(state, "let "), match[0]), " = "), Types$Ts2reason00.TypeKind[/* getParameters */1](typ[/* node */3]), types), ": "), Types$Ts2reason00.TypeKind[/* getReturnType */2](typ[/* node */3]), types), " => [%bs.raw {| _inst."), typ[/* id */1]), Types$Ts2reason00.TypeKind[/* getParameters */1](typ[/* node */3])), " |}];");
+  return /* tuple */[
+          state$1,
+          match[1]
+        ];
+}
+
+function writeFunctionDecl(state, typ, types, ns, names) {
+  var match = Utils$Ts2reason00.toUniqueName(Utils$Ts2reason00.lowerFirst(typ[/* id */1]), names);
+  var state$1 = write(write(write(writeType(write(writeArgumentsToFunctionDecl(write(write(write(write(write(state, "[@bs.module \""), Utils$Ts2reason00.normalizeName($$String.concat(".", $$Array.to_list(ns)))), "\"] external "), match[0]), ": "), Types$Ts2reason00.TypeKind[/* getParameters */1](typ[/* node */3]), types), " => "), Types$Ts2reason00.TypeKind[/* getReturnType */2](typ[/* node */3]), types), " = \""), typ[/* id */1]), "\"");
+  return /* tuple */[
+          state$1,
+          match[1]
+        ];
+}
+
+function writeVariableDecl(state, typ, types, ns, names) {
+  var match = Utils$Ts2reason00.toUniqueName(Utils$Ts2reason00.lowerFirst(typ[/* id */1]), names);
+  var state$1 = write(write(write(writeType(write(write(write(write(write(state, "[@bs.module \""), Utils$Ts2reason00.normalizeName($$String.concat(".", $$Array.to_list(ns)))), "\"] external "), match[0]), ": "), Types$Ts2reason00.TypeKind[/* getType */0](typ[/* node */3]), types), " = \""), typ[/* id */1]), "\"");
+  return /* tuple */[
+          state$1,
+          match[1]
+        ];
+}
+
 exports.make = make;
 exports.write = write;
 exports.increaseIndent = increaseIndent;
@@ -173,9 +216,13 @@ exports.writeParameterName = writeParameterName;
 exports.writeParameter = writeParameter;
 exports.writeArgumentsToMethodDecl = writeArgumentsToMethodDecl;
 exports.writeArgumentsToFunctionDecl = writeArgumentsToFunctionDecl;
+exports.writeArgumentsToFunctionCall = writeArgumentsToFunctionCall;
 exports.writeModuleNameFrom = writeModuleNameFrom;
 exports.writeModuleName = writeModuleName;
 exports.writeGetPropertyDecl = writeGetPropertyDecl;
 exports.writeSetPropertyDecl = writeSetPropertyDecl;
 exports.writePropertyDecls = writePropertyDecls;
+exports.writeMethodDecl = writeMethodDecl;
+exports.writeFunctionDecl = writeFunctionDecl;
+exports.writeVariableDecl = writeVariableDecl;
 /* No side effect */

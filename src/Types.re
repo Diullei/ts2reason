@@ -364,6 +364,8 @@ module TypeKind = {
   type t;
 
   let getType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
+  let getParameters = (_inst: t): array(TsParDecl.t) => [%bs.raw {| _inst.getParameters() |}];
+  let getReturnType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
 };
 
 module TsNode = {
