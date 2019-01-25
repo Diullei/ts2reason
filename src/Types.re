@@ -362,6 +362,8 @@ module TsParDecl = {
 
 module TypeKind = {
   type t;
+
+  let getType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
 };
 
 module TsNode = {

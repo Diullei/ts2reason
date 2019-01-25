@@ -4,6 +4,7 @@
 var List = require("bs-platform/lib/js/list.js");
 var $$Array = require("bs-platform/lib/js/array.js");
 var Caml_array = require("bs-platform/lib/js/caml_array.js");
+var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Types$Ts2reason00 = require("./Types.bs.js");
 var Utils$Ts2reason00 = require("./Utils.bs.js");
 
@@ -129,6 +130,23 @@ function writeModuleName(state, ns) {
   return write(state, Utils$Ts2reason00.capitalize(Utils$Ts2reason00.normalizeName(Caml_array.caml_array_get(ns, ns.length - 1 | 0))));
 }
 
+function writeGetPropertyDecl(state, typ, types, names) {
+  var match = typ[/* node */3];
+  if (match !== undefined) {
+    var match$1 = Utils$Ts2reason00.toUniqueName("get" + Utils$Ts2reason00.capitalize(typ[/* id */1]), names);
+    var state$1 = write(write(write(writeType(write(write(write(state, "let "), match$1[0]), " = (_inst: t): "), Types$Ts2reason00.TypeKind[/* getType */0](Caml_option.valFromOption(match)), types), " => [%bs.raw {| _inst."), typ[/* id */1]), " |}];");
+    return /* tuple */[
+            state$1,
+            match$1[1]
+          ];
+  } else {
+    return /* tuple */[
+            write(state, "!ERROR!"),
+            names
+          ];
+  }
+}
+
 exports.make = make;
 exports.write = write;
 exports.increaseIndent = increaseIndent;
@@ -146,4 +164,5 @@ exports.writeArgumentsToMethodDecl = writeArgumentsToMethodDecl;
 exports.writeArgumentsToFunctionDecl = writeArgumentsToFunctionDecl;
 exports.writeModuleNameFrom = writeModuleNameFrom;
 exports.writeModuleName = writeModuleName;
+exports.writeGetPropertyDecl = writeGetPropertyDecl;
 /* No side effect */

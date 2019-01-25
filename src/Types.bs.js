@@ -382,7 +382,11 @@ var TsParDecl = /* module */[
   /* getName */getName
 ];
 
-var TypeKind = /* module */[];
+function getType$1(_inst) {
+  return ( _inst.getType() );
+}
+
+var TypeKind = /* module */[/* getType */getType$1];
 
 var TsNode = /* module */[];
 

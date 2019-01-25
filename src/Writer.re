@@ -128,3 +128,31 @@ let writeModuleName = (state: writerState, ns: array(string)) =>
   state->write(
     Utils.capitalize(Utils.normalizeName(ns[(ns |> Array.length) - 1])),
   );
+
+let writeGetPropertyDecl =
+    (
+      state: writerState,
+      typ: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  switch (typ.node) {
+  | Some(node) =>
+    let (name, names) =
+      ("get" ++ Utils.capitalize(typ.id))->Utils.toUniqueName(names);
+
+    let state =
+      state
+      ->write("let ")
+      ->write(name)
+      ->write(" = (_inst: t): ")
+      ->writeType(node->TypeKind.getType, types)
+      ->write(" => [%bs.raw {| _inst.")
+      ->write(typ.id)
+      ->write(" |}];");
+
+    (state, names);
+
+  | _ => (state->write("!ERROR!"), names)
+  };
+};

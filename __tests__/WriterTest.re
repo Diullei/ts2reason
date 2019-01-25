@@ -254,4 +254,31 @@ describe("Writer", () => {
       |> toEqual("Ccc");
     })
   );
+
+  Expect.(
+    test("writeGetPropertyDecl", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeGetPropertyDecl(
+            {
+              ns: [||],
+              id: "propName",
+              kind: Types.SyntaxKind.PropertyDeclaration,
+              node:
+                Some(
+                  [%bs.raw {|{getType: () => ({ getText: () => "string" })}|}],
+                ),
+            }: Types.TsNode.t,
+            [||],
+            [],
+          )
+        ->(((s, _)) => s)
+        ->Writer.getCode,
+      )
+      |> toEqual(
+           "let getPropName = (_inst: t): string => [%bs.raw {| _inst.propName |}];",
+         );
+    })
+  );
 });

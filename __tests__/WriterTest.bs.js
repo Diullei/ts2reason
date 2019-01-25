@@ -3,6 +3,7 @@
 
 var Os = require("os");
 var Jest = require("@glennsl/bs-jest/src/jest.js");
+var Caml_option = require("bs-platform/lib/js/caml_option.js");
 var Writer$Ts2reason00 = require("../src/Writer.bs.js");
 
 function makeFakeTsNode(ns, id, kind) {
@@ -171,13 +172,22 @@ describe("Writer", (function () {
                 var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
                 return Jest.Expect[/* toEqual */12]("MyModule", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeModuleNameFrom(wState, makeFakeTsNode(/* array */[], "'myModule'", /* InterfaceDeclaration */241)))));
               }));
-        return Jest.test("writeModuleName", (function (param) {
+        Jest.test("writeModuleName", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("Ccc", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeModuleName(wState, /* array */[
+                                        "aaa",
+                                        "bbb",
+                                        "ccc"
+                                      ]))));
+              }));
+        return Jest.test("writeGetPropertyDecl", (function (param) {
                       var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
-                      return Jest.Expect[/* toEqual */12]("Ccc", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeModuleName(wState, /* array */[
-                                              "aaa",
-                                              "bbb",
-                                              "ccc"
-                                            ]))));
+                      return Jest.Expect[/* toEqual */12]("let getPropName = (_inst: t): string => [%bs.raw {| _inst.propName |}];", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeGetPropertyDecl(wState, /* record */[
+                                                /* ns : array */[],
+                                                /* id */"propName",
+                                                /* kind : PropertyDeclaration */154,
+                                                /* node */Caml_option.some(({getType: () => ({ getText: () => "string" })}))
+                                              ], /* array */[], /* [] */0)[0])));
                     }));
       }));
 
