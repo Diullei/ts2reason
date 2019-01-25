@@ -224,9 +224,21 @@ describe("Writer", (function () {
                 var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
                 return Jest.Expect[/* toEqual */12]("[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => string = \"myFunc\"", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeFunctionDecl(wState, makeFakeTsNode(/* array */[], "myFunc", /* FunctionDeclaration */239), /* array */[], /* array */["myModule"], /* [] */0)[0])));
               }));
-        return Jest.test("writeVariableDecl", (function (param) {
+        Jest.test("writeVariableDecl", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("[@bs.module \"myModule\"] external myVar: string = \"myVar\"", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeVariableDecl(wState, makeFakeTsNode(/* array */[], "myVar", /* VariableDeclaration */237), /* array */[], /* array */["myModule"], /* [] */0)[0])));
+              }));
+        Jest.test("writeBeginModuleFromNs", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("\nmodule Ccc = {\n}", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeEndModule(Writer$Ts2reason00.writeBeginModuleFromNs(wState, /* array */[
+                                            "aaa",
+                                            "bbb",
+                                            "ccc"
+                                          ])))));
+              }));
+        return Jest.test("writeBeginModuleFromType", (function (param) {
                       var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
-                      return Jest.Expect[/* toEqual */12]("[@bs.module \"myModule\"] external myVar: string = \"myVar\"", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeVariableDecl(wState, makeFakeTsNode(/* array */[], "myVar", /* VariableDeclaration */237), /* array */[], /* array */["myModule"], /* [] */0)[0])));
+                      return Jest.Expect[/* toEqual */12]("\nmodule MyClass = {\n}", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeEndModule(Writer$Ts2reason00.writeBeginModuleFromType(wState, makeFakeTsNode(/* array */[], "myClass", /* ClassDeclaration */240))))));
                     }));
       }));
 

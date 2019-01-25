@@ -407,4 +407,36 @@ describe("Writer", () => {
          );
     })
   );
+
+  Expect.(
+    test("writeBeginModuleFromNs", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeBeginModuleFromNs([|"aaa", "bbb", "ccc"|])
+        ->Writer.writeEndModule
+        ->Writer.getCode,
+      )
+      |> toEqual("\nmodule Ccc = {\n}");
+    })
+  );
+
+  Expect.(
+    test("writeBeginModuleFromType", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeBeginModuleFromType(
+            makeFakeTsNode(
+              [||],
+              "myClass",
+              Types.SyntaxKind.ClassDeclaration,
+            ),
+          )
+        ->Writer.writeEndModule
+        ->Writer.getCode,
+      )
+      |> toEqual("\nmodule MyClass = {\n}");
+    })
+  );
 });

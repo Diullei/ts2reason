@@ -284,3 +284,22 @@ let writeVariableDecl =
 
   (state, names);
 };
+
+let writeBeginModuleFromNs = (state: writerState, ns: array(string)) =>
+  state
+  ->writeNewLine
+  ->write("module ")
+  ->writeModuleName(ns)
+  ->write(" = {")
+  ->increaseIndent;
+
+let writeBeginModuleFromType = (state: writerState, typ: TsNode.t) =>
+  state
+  ->writeNewLine
+  ->write("module ")
+  ->writeModuleNameFrom(typ)
+  ->write(" = {")
+  ->increaseIndent;
+
+let writeEndModule = (state: writerState) =>
+  state->decreaseIndent->writeNewLine->write("}");

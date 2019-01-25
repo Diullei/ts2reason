@@ -201,6 +201,18 @@ function writeVariableDecl(state, typ, types, ns, names) {
         ];
 }
 
+function writeBeginModuleFromNs(state, ns) {
+  return increaseIndent(write(writeModuleName(write(writeNewLine(state), "module "), ns), " = {"));
+}
+
+function writeBeginModuleFromType(state, typ) {
+  return increaseIndent(write(writeModuleNameFrom(write(writeNewLine(state), "module "), typ), " = {"));
+}
+
+function writeEndModule(state) {
+  return write(writeNewLine(decreaseIndent(state)), "}");
+}
+
 exports.make = make;
 exports.write = write;
 exports.increaseIndent = increaseIndent;
@@ -225,4 +237,7 @@ exports.writePropertyDecls = writePropertyDecls;
 exports.writeMethodDecl = writeMethodDecl;
 exports.writeFunctionDecl = writeFunctionDecl;
 exports.writeVariableDecl = writeVariableDecl;
+exports.writeBeginModuleFromNs = writeBeginModuleFromNs;
+exports.writeBeginModuleFromType = writeBeginModuleFromType;
+exports.writeEndModule = writeEndModule;
 /* No side effect */
