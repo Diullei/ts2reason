@@ -148,24 +148,36 @@ describe("Writer", (function () {
             ], (function (param) {
                 return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeArgumentsToMethodDecl(Writer$Ts2reason00.make(Os.EOL, "", 0), param[0], /* array */[]))));
               }));
-        return Jest.testAll("writeArgumentsToFunctionDecl", /* :: */[
-                    /* tuple */[
-                      /* array */[],
-                      "()"
-                    ],
-                    /* :: */[
-                      /* tuple */[
-                        /* array */[
-                          makeFakeTsParDec("param01", "number"),
-                          makeFakeTsParDec("param02", "boolean"),
-                          makeFakeTsParDec("param03", "string")
-                        ],
-                        "(_param01: float, _param02: bool, _param03: string)"
-                      ],
-                      /* [] */0
-                    ]
-                  ], (function (param) {
-                      return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeArgumentsToFunctionDecl(Writer$Ts2reason00.make(Os.EOL, "", 0), param[0], /* array */[]))));
+        Jest.testAll("writeArgumentsToFunctionDecl", /* :: */[
+              /* tuple */[
+                /* array */[],
+                "()"
+              ],
+              /* :: */[
+                /* tuple */[
+                  /* array */[
+                    makeFakeTsParDec("param01", "number"),
+                    makeFakeTsParDec("param02", "boolean"),
+                    makeFakeTsParDec("param03", "string")
+                  ],
+                  "(_param01: float, _param02: bool, _param03: string)"
+                ],
+                /* [] */0
+              ]
+            ], (function (param) {
+                return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeArgumentsToFunctionDecl(Writer$Ts2reason00.make(Os.EOL, "", 0), param[0], /* array */[]))));
+              }));
+        Jest.test("writeModuleNameFrom", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("MyModule", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeModuleNameFrom(wState, makeFakeTsNode(/* array */[], "'myModule'", /* InterfaceDeclaration */241)))));
+              }));
+        return Jest.test("writeModuleName", (function (param) {
+                      var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                      return Jest.Expect[/* toEqual */12]("Ccc", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeModuleName(wState, /* array */[
+                                              "aaa",
+                                              "bbb",
+                                              "ccc"
+                                            ]))));
                     }));
       }));
 

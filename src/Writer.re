@@ -1,3 +1,5 @@
+open Types;
+
 type writerState = {
   nl: string,
   code: string,
@@ -37,7 +39,7 @@ let writeNewLine = (state: writerState) =>
 let writeRawJs = (state: writerState, text: string) =>
   state->write({j|[%bs.raw {| $text |}]|j});
 
-let writeReasonType = (state: writerState, typ: Types.TsNode.t) => {
+let writeReasonType = (state: writerState, typ: TsNode.t) => {
   let namespaceSplit =
     switch (typ.ns) {
     | [||] => ""
@@ -52,12 +54,8 @@ let writeReasonType = (state: writerState, typ: Types.TsNode.t) => {
 };
 
 let writeType =
-    (
-      state: writerState,
-      tsType: Types.TsType.t,
-      types: array(Types.TsNode.t),
-    ) =>
-  switch (tsType->Types.TsType.getText) {
+    (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
+  switch (tsType->TsType.getText) {
   | "string" => state->write("string")
   | "boolean" => state->write("bool")
   | "number" => state->write("float")
@@ -65,9 +63,7 @@ let writeType =
     switch (
       types
       |> Array.to_list
-      |> List.filter((tp: Types.TsNode.t) =>
-           tp.id == tsType->Types.TsType.getText
-         )
+      |> List.filter((tp: TsNode.t) => tp.id == tsType->TsType.getText)
     ) {
     | [] => state->write("t_TODO")
     | [h, ..._] => state->writeReasonType(h)
@@ -91,22 +87,14 @@ let writeParameterName =
   );
 
 let writeParameter =
-    (
-      state: writerState,
-      par: Types.TsParDecl.t,
-      types: array(Types.TsNode.t),
-    ) =>
+    (state: writerState, par: TsParDecl.t, types: array(TsNode.t)) =>
   state
-  ->writeParameterName(par->Types.TsParDecl.getName, true)
+  ->writeParameterName(par->TsParDecl.getName, true)
   ->write(": ")
-  ->writeType(par->Types.TsParDecl.getType, types);
+  ->writeType(par->TsParDecl.getType, types);
 
 let writeArgumentsToMethodDecl =
-    (
-      state: writerState,
-      pars: array(Types.TsParDecl.t),
-      types: array(Types.TsNode.t),
-    ) => {
+    (state: writerState, pars: array(TsParDecl.t), types: array(TsNode.t)) => {
   let state = state->write("(_inst: t");
   (
     pars
@@ -119,11 +107,7 @@ let writeArgumentsToMethodDecl =
 };
 
 let writeArgumentsToFunctionDecl =
-    (
-      state: writerState,
-      pars: array(Types.TsParDecl.t),
-      types: array(Types.TsNode.t),
-    ) => {
+    (state: writerState, pars: array(TsParDecl.t), types: array(TsNode.t)) => {
   let state = state->write("(");
   pars
   |> Array.fold_left(
@@ -136,3 +120,11 @@ let writeArgumentsToFunctionDecl =
      )
   |> (((s, _)) => s->write(")"));
 };
+
+let writeModuleNameFrom = (state: writerState, typ: TsNode.t) =>
+  state->write(Utils.capitalize(Utils.normalizeName(typ.id)));
+
+let writeModuleName = (state: writerState, ns: array(string)) =>
+  state->write(
+    Utils.capitalize(Utils.normalizeName(ns[(ns |> Array.length) - 1])),
+  );

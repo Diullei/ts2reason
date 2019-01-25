@@ -224,4 +224,34 @@ describe("Writer", () => {
       |> toEqual(output)
     )
   );
+
+  Expect.(
+    test("writeModuleNameFrom", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeModuleNameFrom(
+            makeFakeTsNode(
+              [||],
+              "'myModule'",
+              Types.SyntaxKind.InterfaceDeclaration,
+            ),
+          )
+        ->Writer.getCode,
+      )
+      |> toEqual("MyModule");
+    })
+  );
+
+  Expect.(
+    test("writeModuleName", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeModuleName([|"aaa", "bbb", "ccc"|])
+        ->Writer.getCode,
+      )
+      |> toEqual("Ccc");
+    })
+  );
 });

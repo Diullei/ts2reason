@@ -3,6 +3,7 @@
 
 var List = require("bs-platform/lib/js/list.js");
 var $$Array = require("bs-platform/lib/js/array.js");
+var Caml_array = require("bs-platform/lib/js/caml_array.js");
 var Types$Ts2reason00 = require("./Types.bs.js");
 var Utils$Ts2reason00 = require("./Utils.bs.js");
 
@@ -120,6 +121,14 @@ function writeArgumentsToFunctionDecl(state, pars, types) {
   return write(param[0], ")");
 }
 
+function writeModuleNameFrom(state, typ) {
+  return write(state, Utils$Ts2reason00.capitalize(Utils$Ts2reason00.normalizeName(typ[/* id */1])));
+}
+
+function writeModuleName(state, ns) {
+  return write(state, Utils$Ts2reason00.capitalize(Utils$Ts2reason00.normalizeName(Caml_array.caml_array_get(ns, ns.length - 1 | 0))));
+}
+
 exports.make = make;
 exports.write = write;
 exports.increaseIndent = increaseIndent;
@@ -135,4 +144,6 @@ exports.writeParameterName = writeParameterName;
 exports.writeParameter = writeParameter;
 exports.writeArgumentsToMethodDecl = writeArgumentsToMethodDecl;
 exports.writeArgumentsToFunctionDecl = writeArgumentsToFunctionDecl;
+exports.writeModuleNameFrom = writeModuleNameFrom;
+exports.writeModuleName = writeModuleName;
 /* No side effect */
