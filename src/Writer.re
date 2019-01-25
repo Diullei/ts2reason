@@ -10,19 +10,29 @@ let make = (~nl: string, ~code: string, ~currentIdentation: int) => {
   currentIdentation,
 };
 
-let getCode = (state: writerState) => state.code;
-
 let write = (state: writerState, text: string): writerState => {
   ...state,
   code: state.code ++ text,
 };
+
+let increaseIndent = (state: writerState) => {
+  ...state,
+  currentIdentation: state.currentIdentation + 1,
+};
+
+let decreaseIndent = (state: writerState) => {
+  ...state,
+  currentIdentation: state.currentIdentation - 1,
+};
+
+let getCode = (state: writerState) => state.code;
 
 let writeComment = (state: writerState, text: string) =>
   state->write({j|/* $text */|j});
 
 let writeNewLine = (state: writerState) =>
   state->write(state.nl)
-  |> (state => Utils.makeIndent(state.currentIdentation) |> state->write);
+  |> (state => Utils.makeIndent(state.currentIdentation * 2) |> state->write);
 
 let writeRawJs = (state: writerState, text: string) =>
   state->write({j|[%bs.raw {| $text |}]|j});
@@ -81,7 +91,11 @@ let writeParameterName =
   );
 
 let writeParameter =
-    (state: writerState, par: Types.TsParDecl.t, types: array(Types.TsNode.t)) =>
+    (
+      state: writerState,
+      par: Types.TsParDecl.t,
+      types: array(Types.TsNode.t),
+    ) =>
   state
   ->writeParameterName(par->Types.TsParDecl.getName, true)
   ->write(": ")

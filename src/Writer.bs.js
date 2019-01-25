@@ -14,10 +14,6 @@ function make(nl, code, currentIdentation) {
         ];
 }
 
-function getCode(state) {
-  return state[/* code */1];
-}
-
 function write(state, text) {
   return /* record */[
           /* nl */state[/* nl */0],
@@ -26,13 +22,33 @@ function write(state, text) {
         ];
 }
 
+function increaseIndent(state) {
+  return /* record */[
+          /* nl */state[/* nl */0],
+          /* code */state[/* code */1],
+          /* currentIdentation */state[/* currentIdentation */2] + 1 | 0
+        ];
+}
+
+function decreaseIndent(state) {
+  return /* record */[
+          /* nl */state[/* nl */0],
+          /* code */state[/* code */1],
+          /* currentIdentation */state[/* currentIdentation */2] - 1 | 0
+        ];
+}
+
+function getCode(state) {
+  return state[/* code */1];
+}
+
 function writeComment(state, text) {
   return write(state, "/* " + (String(text) + " */"));
 }
 
 function writeNewLine(state) {
   var state$1 = write(state, state[/* nl */0]);
-  return write(state$1, Utils$Ts2reason00.makeIndent(state$1[/* currentIdentation */2]));
+  return write(state$1, Utils$Ts2reason00.makeIndent((state$1[/* currentIdentation */2] << 1)));
 }
 
 function writeRawJs(state, text) {
@@ -105,8 +121,10 @@ function writeArgumentsToFunctionDecl(state, pars, types) {
 }
 
 exports.make = make;
-exports.getCode = getCode;
 exports.write = write;
+exports.increaseIndent = increaseIndent;
+exports.decreaseIndent = decreaseIndent;
+exports.getCode = getCode;
 exports.writeComment = writeComment;
 exports.writeNewLine = writeNewLine;
 exports.writeRawJs = writeRawJs;

@@ -32,6 +32,14 @@ describe("Writer", (function () {
                 var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
                 return Jest.Expect[/* toEqual */12]("some text !!", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.write(Writer$Ts2reason00.write(wState, "some text"), " !!"))));
               }));
+        Jest.test("increaseIndent", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("\n    aaa", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.write(Writer$Ts2reason00.writeNewLine(Writer$Ts2reason00.increaseIndent(Writer$Ts2reason00.increaseIndent(wState))), "aaa"))));
+              }));
+        Jest.test("decreaseIndent", (function (param) {
+                var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
+                return Jest.Expect[/* toEqual */12]("\n  aaa", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.write(Writer$Ts2reason00.writeNewLine(Writer$Ts2reason00.decreaseIndent(Writer$Ts2reason00.increaseIndent(Writer$Ts2reason00.increaseIndent(wState)))), "aaa"))));
+              }));
         Jest.test("writeComment", (function (param) {
                 var wState = Writer$Ts2reason00.make(Os.EOL, "", 0);
                 return Jest.Expect[/* toEqual */12]("/* some comment */", Jest.Expect[/* expect */0](Writer$Ts2reason00.getCode(Writer$Ts2reason00.writeComment(wState, "some comment"))));

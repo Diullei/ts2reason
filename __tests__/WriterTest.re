@@ -38,6 +38,37 @@ describe("Writer", () => {
   );
 
   Expect.(
+    test("increaseIndent", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.increaseIndent
+        ->Writer.increaseIndent
+        ->Writer.writeNewLine
+        ->Writer.write("aaa")
+        ->Writer.getCode,
+      )
+      |> toEqual("\n    aaa");
+    })
+  );
+
+  Expect.(
+    test("decreaseIndent", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.increaseIndent
+        ->Writer.increaseIndent
+        ->Writer.decreaseIndent
+        ->Writer.writeNewLine
+        ->Writer.write("aaa")
+        ->Writer.getCode,
+      )
+      |> toEqual("\n  aaa");
+    })
+  );
+
+  Expect.(
     test("writeComment", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
       expect(wState->Writer.writeComment("some comment")->Writer.getCode)
