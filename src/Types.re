@@ -353,6 +353,13 @@ module TsType = {
   let getText = (_inst: t): string => [%bs.raw {| _inst.getText() |}];
 };
 
+module TsParDecl = {
+  type t;
+
+  let getType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
+  let getName = (_inst: t): string => [%bs.raw {| _inst.getName() |}];
+};
+
 module TypeKind = {
   type t;
 };

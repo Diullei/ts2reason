@@ -2,10 +2,11 @@
 'use strict';
 
 var List = require("bs-platform/lib/js/list.js");
+var $$Array = require("bs-platform/lib/js/array.js");
 var $$String = require("bs-platform/lib/js/string.js");
 var Caml_obj = require("bs-platform/lib/js/caml_obj.js");
 
-var reservedWorks = /* :: */[
+var reservedWords = /* :: */[
   "sig",
   /* :: */[
     "module",
@@ -88,13 +89,21 @@ function normalizeName(name) {
   return name.replace((/[\$|\.|\-]/g), "_").replace((/["|']/g), "");
 }
 
-function toUniqueName(candidateName, usedNames) {
+function fixIfItsAReservedWork(id) {
   var match = List.length(List.filter((function (kw) {
-                return kw === $$String.uncapitalize(candidateName);
-              }))(reservedWorks));
-  var name = match !== 0 ? "" + (String(candidateName) + "_") : candidateName;
+                return kw === $$String.uncapitalize(id);
+              }))(reservedWords));
+  if (match !== 0) {
+    return "" + (String(id) + "_");
+  } else {
+    return id;
+  }
+}
+
+function toUniqueName(candidateName, usedNames) {
+  var name = fixIfItsAReservedWork(candidateName);
   var occurrence = List.length(List.filter((function (n) {
-                return n === name;
+                return n === fixIfItsAReservedWork(candidateName);
               }))(usedNames));
   if (occurrence !== 0) {
     return /* tuple */[
@@ -115,11 +124,26 @@ function toUniqueName(candidateName, usedNames) {
   }
 }
 
-exports.reservedWorks = reservedWorks;
+function makeIndent(size) {
+  if (size !== 0) {
+    return $$String.make(size, /* " " */32);
+  } else {
+    return "";
+  }
+}
+
+function createNameSpaceName(ns) {
+  return normalizeName($$String.concat("_", $$Array.to_list(ns)));
+}
+
+exports.reservedWords = reservedWords;
 exports.range = range;
 exports.uniq = uniq;
 exports.capitalize = capitalize;
 exports.lowerFirst = lowerFirst;
 exports.normalizeName = normalizeName;
+exports.fixIfItsAReservedWork = fixIfItsAReservedWork;
 exports.toUniqueName = toUniqueName;
+exports.makeIndent = makeIndent;
+exports.createNameSpaceName = createNameSpaceName;
 /* No side effect */

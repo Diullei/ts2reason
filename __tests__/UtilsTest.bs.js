@@ -74,50 +74,64 @@ describe("Utils", (function () {
         Jest.test("normalizeName", (function (param) {
                 return Jest.Expect[/* toEqual */12]("Module_Src_Types__type_name", Jest.Expect[/* expect */0](Utils$Ts2reason00.normalizeName("\"Module\".'Src'.Types.$type_name")));
               }));
+        Jest.test("fixIfItsAReservedWork", (function (param) {
+                return Jest.Expect[/* toEqual */12]("as_", Jest.Expect[/* expect */0](Utils$Ts2reason00.fixIfItsAReservedWork("as")));
+              }));
         var match = Utils$Ts2reason00.toUniqueName("make", /* [] */0);
         var match$1 = Utils$Ts2reason00.toUniqueName("make", match[1]);
         var match$2 = Utils$Ts2reason00.toUniqueName("make", match$1[1]);
-        return Jest.testAll("toUniqueName", /* :: */[
-                    /* tuple */[
-                      match$2[1],
-                      /* :: */[
-                        "make",
-                        /* :: */[
-                          "make",
-                          /* :: */[
-                            "make",
-                            /* [] */0
-                          ]
-                        ]
-                      ]
-                    ],
+        Jest.testAll("toUniqueName", /* :: */[
+              /* tuple */[
+                match$2[1],
+                /* :: */[
+                  "make",
+                  /* :: */[
+                    "make",
                     /* :: */[
-                      /* tuple */[
-                        /* :: */[
-                          match[0],
-                          /* :: */[
-                            match$1[0],
-                            /* :: */[
-                              match$2[0],
-                              /* [] */0
-                            ]
-                          ]
-                        ],
-                        /* :: */[
-                          "make",
-                          /* :: */[
-                            "make1",
-                            /* :: */[
-                              "make2",
-                              /* [] */0
-                            ]
-                          ]
-                        ]
-                      ],
+                      "make",
                       /* [] */0
                     ]
-                  ], (function (param) {
-                      return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](param[0]));
+                  ]
+                ]
+              ],
+              /* :: */[
+                /* tuple */[
+                  /* :: */[
+                    match[0],
+                    /* :: */[
+                      match$1[0],
+                      /* :: */[
+                        match$2[0],
+                        /* [] */0
+                      ]
+                    ]
+                  ],
+                  /* :: */[
+                    "make",
+                    /* :: */[
+                      "make1",
+                      /* :: */[
+                        "make2",
+                        /* [] */0
+                      ]
+                    ]
+                  ]
+                ],
+                /* [] */0
+              ]
+            ], (function (param) {
+                return Jest.Expect[/* toEqual */12](param[1], Jest.Expect[/* expect */0](param[0]));
+              }));
+        Jest.test("makeIndent", (function (param) {
+                return Jest.Expect[/* toEqual */12]("     ", Jest.Expect[/* expect */0](Utils$Ts2reason00.makeIndent(5)));
+              }));
+        return Jest.test("createNameSpaceName", (function (param) {
+                      return Jest.Expect[/* toEqual */12]("Module_Src_Types__type_name", Jest.Expect[/* expect */0](Utils$Ts2reason00.createNameSpaceName(/* array */[
+                                          "\"Module\"",
+                                          "'Src'",
+                                          "Types",
+                                          "$type_name"
+                                        ])));
                     }));
       }));
 

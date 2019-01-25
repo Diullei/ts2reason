@@ -1,4 +1,4 @@
-let reservedWorks = [
+let reservedWords = [
   "sig",
   "module",
   "begin",
@@ -44,21 +44,31 @@ let normalizeName = (name: string) =>
   |> Js.String.replaceByRe([%re "/[\$|\.|\-]/g"], "_")
   |> Js.String.replaceByRe([%re "/[\"|']/g"], "");
 
-let toUniqueName = (candidateName: string, usedNames: list(string)) => {
-  let name =
-    switch (
-      reservedWorks
-      |> List.filter(kw => kw == candidateName->lowerFirst)
-      |> List.length
-    ) {
-    | 0 => candidateName
-    | _ => {j|$(candidateName)_|j}
-    };
+let fixIfItsAReservedWork = (id: string) =>
+  switch (
+    reservedWords |> List.filter(kw => kw == id->lowerFirst) |> List.length
+  ) {
+  | 0 => id
+  | _ => {j|$(id)_|j}
+  };
 
-  let occurrence = usedNames |> List.filter(n => n == name) |> List.length;
+let toUniqueName = (candidateName: string, usedNames: list(string)) => {
+  let name = candidateName->fixIfItsAReservedWork;
+  let occurrence =
+    usedNames
+    |> List.filter(n => n == candidateName->fixIfItsAReservedWork)
+    |> List.length;
 
   switch (occurrence) {
   | 0 => (name, [name, ...usedNames])
   | _ => (name ++ string_of_int(occurrence), [name, ...usedNames])
   };
 };
+
+let makeIndent =
+  fun
+  | 0 => ""
+  | size => ' ' |> String.make(size);
+
+let createNameSpaceName = (ns: array(string)) =>
+  ns |> Array.to_list |> String.concat("_") |> normalizeName;

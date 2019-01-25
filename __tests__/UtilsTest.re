@@ -33,6 +33,12 @@ describe("Utils", () => {
     )
   );
 
+  Expect.(
+    test("fixIfItsAReservedWork", () =>
+      expect(Utils.fixIfItsAReservedWork("as")) |> toEqual("as_")
+    )
+  );
+
   let (n1, lst) = "make"->Utils.toUniqueName([]);
   let (n2, lst) = "make"->Utils.toUniqueName(lst);
   let (n3, lst) = "make"->Utils.toUniqueName(lst);
@@ -46,6 +52,26 @@ describe("Utils", () => {
       ],
       ((input, output)) =>
       expect(input) |> toEqual(output)
+    )
+  );
+
+  Expect.(
+    test("makeIndent", () =>
+      expect(Utils.makeIndent(5)) |> toEqual("     ")
+    )
+  );
+
+  Expect.(
+    test("createNameSpaceName", () =>
+      expect(
+        Utils.createNameSpaceName([|
+          "\"Module\"",
+          "'Src'",
+          "Types",
+          "$type_name",
+        |]),
+      )
+      |> toEqual("Module_Src_Types__type_name")
     )
   );
 });

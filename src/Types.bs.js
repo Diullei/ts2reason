@@ -369,12 +369,26 @@ function getText(_inst) {
 
 var TsType = /* module */[/* getText */getText];
 
+function getType(_inst) {
+  return ( _inst.getType() );
+}
+
+function getName(_inst) {
+  return ( _inst.getName() );
+}
+
+var TsParDecl = /* module */[
+  /* getType */getType,
+  /* getName */getName
+];
+
 var TypeKind = /* module */[];
 
 var TsNode = /* module */[];
 
 exports.SyntaxKind = SyntaxKind;
 exports.TsType = TsType;
+exports.TsParDecl = TsParDecl;
 exports.TypeKind = TypeKind;
 exports.TsNode = TsNode;
 /* No side effect */

@@ -2,6 +2,27 @@ open Jest;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
+let makeFakeTsNode =
+    (ns: array(string), id: string, kind: Types.SyntaxKind.t): Types.TsNode.t => {
+  ns,
+  id,
+  kind,
+  node: None,
+};
+
+let makeFakeTsType = (_typ: string): Types.TsType.t => [%bs.raw
+  {| { getText: () => _typ } |}
+];
+
+let makeFakeTsParDec = (_name: string, _typ: string): Types.TsParDecl.t => [%bs.raw
+  {|
+    {
+      getName: () => _name,
+      getType: () => ({ getText: () => _typ })
+    }
+  |}
+];
+
 describe("Writer", () => {
   Expect.(
     test("write", () => {
@@ -44,12 +65,13 @@ describe("Writer", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
       expect(
         wState
-        ->Writer.writeReasonType({
-            ns: [|"aaa", "bbb"|],
-            id: "ccc",
-            kind: Types.SyntaxKind.ModuleDeclaration,
-            node: None,
-          })
+        ->Writer.writeReasonType(
+            makeFakeTsNode(
+              [|"aaa", "bbb"|],
+              "ccc",
+              Types.SyntaxKind.ModuleDeclaration,
+            ),
+          )
         ->Writer.getCode,
       )
       |> toEqual("t_aaa_bbb_ccc");
@@ -60,21 +82,14 @@ describe("Writer", () => {
     testAll(
       "writeType",
       [
-        ([%bs.raw {| { getText: () => "string" } |}], [||], "string"),
-        ([%bs.raw {| { getText: () => "boolean" } |}], [||], "bool"),
-        ([%bs.raw {| { getText: () => "number" } |}], [||], "float"),
-        ([%bs.raw {| { getText: () => "xyz" } |}], [||], "t_TODO"),
+        (makeFakeTsType("string"), [||], "string"),
+        (makeFakeTsType("boolean"), [||], "bool"),
+        (makeFakeTsType("number"), [||], "float"),
+        (makeFakeTsType("xyz"), [||], "t_TODO"),
         (
-          [%bs.raw {| { getText: () => "MyObj" } |}],
+          makeFakeTsType("MyObj"),
           [|
-            (
-              {
-                ns: [||],
-                id: "MyObj",
-                kind: Types.SyntaxKind.ModuleDeclaration,
-                node: None,
-              }: Types.TsNode.t
-            ),
+            makeFakeTsNode([||], "MyObj", Types.SyntaxKind.ModuleDeclaration),
           |],
           "t_MyObj",
         ),
@@ -83,6 +98,96 @@ describe("Writer", () => {
       expect(
         Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
         ->Writer.writeType(fakeObj, types)
+        ->Writer.getCode,
+      )
+      |> toEqual(output)
+    )
+  );
+
+  Expect.(
+    test("writeIf", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeIf(true, "true expr", "false expr")
+        ->Writer.getCode,
+      )
+      |> toEqual("true expr");
+    })
+  );
+
+  Expect.(
+    testAll(
+      "writeParameterName",
+      [
+        ("type", true, "_type"),
+        ("type", false, "type_"),
+        ("name", false, "name"),
+      ],
+      ((name, startWithUnderline, output)) =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        ->Writer.writeParameterName(name, startWithUnderline)
+        ->Writer.getCode,
+      )
+      |> toEqual(output)
+    )
+  );
+
+  Expect.(
+    test("writeParameter", () => {
+      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
+      expect(
+        wState
+        ->Writer.writeParameter(makeFakeTsParDec("param", "number"), [||])
+        ->Writer.getCode,
+      )
+      |> toEqual("_param: float");
+    })
+  );
+
+  Expect.(
+    testAll(
+      "writeArgumentsToMethodDecl",
+      [
+        ([||], "(_inst: t)"),
+        (
+          [|
+            makeFakeTsParDec("param01", "number"),
+            makeFakeTsParDec("param02", "boolean"),
+            makeFakeTsParDec("param03", "string"),
+          |],
+          "(_inst: t, _param01: float, _param02: bool, _param03: string)",
+        ),
+      ],
+      ((parList, output)) =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        ->Writer.writeArgumentsToMethodDecl(parList, [||])
+        ->Writer.getCode,
+      )
+      |> toEqual(output)
+    )
+  );
+
+  Expect.(
+    testAll(
+      "writeArgumentsToFunctionDecl",
+      [
+        ([||], "()"),
+        (
+          [|
+            makeFakeTsParDec("param01", "number"),
+            makeFakeTsParDec("param02", "boolean"),
+            makeFakeTsParDec("param03", "string"),
+          |],
+          "(_param01: float, _param02: bool, _param03: string)",
+        ),
+      ],
+      ((parList, output)) =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        ->Writer.writeArgumentsToFunctionDecl(parList, [||])
         ->Writer.getCode,
       )
       |> toEqual(output)

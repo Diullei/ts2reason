@@ -3,7 +3,6 @@
 
 var List = require("bs-platform/lib/js/list.js");
 var $$Array = require("bs-platform/lib/js/array.js");
-var $$String = require("bs-platform/lib/js/string.js");
 var Types$Ts2reason00 = require("./Types.bs.js");
 var Utils$Ts2reason00 = require("./Utils.bs.js");
 
@@ -33,12 +32,7 @@ function writeComment(state, text) {
 
 function writeNewLine(state) {
   var state$1 = write(state, state[/* nl */0]);
-  var match = state$1[/* currentIdentation */2];
-  if (match !== 0) {
-    return state$1;
-  } else {
-    return write(state$1, $$String.make(state$1[/* currentIdentation */2], /* " " */32));
-  }
+  return write(state$1, Utils$Ts2reason00.makeIndent(state$1[/* currentIdentation */2]));
 }
 
 function writeRawJs(state, text) {
@@ -47,7 +41,8 @@ function writeRawJs(state, text) {
 
 function writeReasonType(state, typ) {
   var match = typ[/* ns */0];
-  return write(write(write(write(state, "t_"), Utils$Ts2reason00.normalizeName($$String.concat("_", $$Array.to_list(typ[/* ns */0])))), match.length !== 0 ? "_" : ""), typ[/* id */1]);
+  var namespaceSplit = match.length !== 0 ? "_" : "";
+  return write(write(write(write(state, "t_"), Utils$Ts2reason00.createNameSpaceName(typ[/* ns */0])), namespaceSplit), typ[/* id */1]);
 }
 
 function writeType(state, tsType, types) {
@@ -71,6 +66,44 @@ function writeType(state, tsType, types) {
   }
 }
 
+function writeIf(state, condition, thenText, elseText) {
+  if (condition) {
+    return write(state, thenText);
+  } else {
+    return write(state, elseText);
+  }
+}
+
+function writeParameterName(state, name, startWithUnderline) {
+  return writeIf(state, startWithUnderline, "_" + name, Utils$Ts2reason00.fixIfItsAReservedWork(name));
+}
+
+function writeParameter(state, par, types) {
+  return writeType(write(writeParameterName(state, Types$Ts2reason00.TsParDecl[/* getName */1](par), true), ": "), Types$Ts2reason00.TsParDecl[/* getType */0](par), types);
+}
+
+function writeArgumentsToMethodDecl(state, pars, types) {
+  var state$1 = write(state, "(_inst: t");
+  return write($$Array.fold_left((function (state, par) {
+                    return writeParameter(write(state, ", "), par, types);
+                  }), state$1, pars), ")");
+}
+
+function writeArgumentsToFunctionDecl(state, pars, types) {
+  var state$1 = write(state, "(");
+  var param = $$Array.fold_left((function (param, par) {
+          var i = param[1];
+          return /* tuple */[
+                  writeParameter(writeIf(param[0], i === 0, "", ", "), par, types),
+                  i + 1 | 0
+                ];
+        }), /* tuple */[
+        state$1,
+        0
+      ], pars);
+  return write(param[0], ")");
+}
+
 exports.make = make;
 exports.getCode = getCode;
 exports.write = write;
@@ -79,4 +112,9 @@ exports.writeNewLine = writeNewLine;
 exports.writeRawJs = writeRawJs;
 exports.writeReasonType = writeReasonType;
 exports.writeType = writeType;
+exports.writeIf = writeIf;
+exports.writeParameterName = writeParameterName;
+exports.writeParameter = writeParameter;
+exports.writeArgumentsToMethodDecl = writeArgumentsToMethodDecl;
+exports.writeArgumentsToFunctionDecl = writeArgumentsToFunctionDecl;
 /* No side effect */
