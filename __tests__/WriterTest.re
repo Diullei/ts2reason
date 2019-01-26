@@ -1,9 +1,10 @@
 open Jest;
+open TsApi;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
 let makeFakeTsNode =
-    (ns: array(string), id: string, kind: Types.SyntaxKind.t): Types.TsNode.t => {
+    (ns: array(string), id: string, kind: SyntaxKind.t): TsNode.t => {
   ns,
   id,
   kind,
@@ -22,11 +23,11 @@ let makeFakeTsNode =
   ],
 };
 
-let makeFakeTsType = (_typ: string): Types.TsType.t => [%bs.raw
+let makeFakeTsType = (_typ: string): TsType.t => [%bs.raw
   {| { getText: () => _typ } |}
 ];
 
-let makeFakeTsParDec = (_name: string, _typ: string): Types.TsParDecl.t => [%bs.raw
+let makeFakeTsParDec = (_name: string, _typ: string): TsParDecl.t => [%bs.raw
   {|
     {
       getName: () => _name,
@@ -112,7 +113,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [|"aaa", "bbb"|],
               "ccc",
-              Types.SyntaxKind.ModuleDeclaration,
+              SyntaxKind.ModuleDeclaration,
             ),
           )
         ->Writer.getCode,
@@ -132,7 +133,7 @@ describe("Writer", () => {
         (
           makeFakeTsType("MyObj"),
           [|
-            makeFakeTsNode([||], "MyObj", Types.SyntaxKind.ModuleDeclaration),
+            makeFakeTsNode([||], "MyObj", SyntaxKind.ModuleDeclaration),
           |],
           "t_MyObj",
         ),
@@ -270,7 +271,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "'myModule'",
-              Types.SyntaxKind.InterfaceDeclaration,
+              SyntaxKind.InterfaceDeclaration,
             ),
           )
         ->Writer.getCode,
@@ -300,7 +301,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "propName",
-              Types.SyntaxKind.PropertyDeclaration,
+              SyntaxKind.PropertyDeclaration,
             ),
             [||],
             [],
@@ -323,7 +324,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "propName",
-              Types.SyntaxKind.PropertyDeclaration,
+              SyntaxKind.PropertyDeclaration,
             ),
             [||],
             [],
@@ -346,7 +347,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "myFunc",
-              Types.SyntaxKind.MethodDeclaration,
+              SyntaxKind.MethodDeclaration,
             ),
             [||],
             [],
@@ -369,7 +370,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "myFunc",
-              Types.SyntaxKind.FunctionDeclaration,
+              SyntaxKind.FunctionDeclaration,
             ),
             [||],
             [|"myModule"|],
@@ -393,7 +394,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "myVar",
-              Types.SyntaxKind.VariableDeclaration,
+              SyntaxKind.VariableDeclaration,
             ),
             [||],
             [|"myModule"|],
@@ -430,7 +431,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "myClass",
-              Types.SyntaxKind.ClassDeclaration,
+              SyntaxKind.ClassDeclaration,
             ),
           )
         ->Writer.writeEndModule
@@ -449,7 +450,7 @@ describe("Writer", () => {
             makeFakeTsNode(
               [||],
               "myClass",
-              Types.SyntaxKind.ClassDeclaration,
+              SyntaxKind.ClassDeclaration,
             ),
           )
         ->Writer.getCode,

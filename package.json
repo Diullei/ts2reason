@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "description": "Automatically generation of ReasonML bindings using TypeScript definitions.",
   "scripts": {
-    "build": "bsb -make-world",
-    "start": "bsb -make-world -w",
+    "build": "tsc && bsb -make-world",
     "clean": "bsb -clean-world",
     "test": "npm run build && jest"
   },
@@ -16,13 +15,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^10.12.18",
     "bs-platform": "^4.0.8",
     "ts-node": "^8.0.1",
     "ts-simple-ast": "^21.0.0",
     "typescript": "^3.2.4"
   },
   "devDependencies": {
-    "@glennsl/bs-jest": "^0.4.7"
+    "@glennsl/bs-jest": "^0.4.7",
+    "@types/node": "^10.12.18"
   }
 }

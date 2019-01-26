@@ -88,3 +88,9 @@ npm-debug.log
 /node_modules/
 
 /example/*.re
+
+/__tests__/*.js
+/__tests__/**/*.js
+
+/src/*.js
+/src/**/*.js

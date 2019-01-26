@@ -378,3 +378,6 @@ module TsNode = {
     node: TypeKind.t,
   };
 };
+
+[@bs.module "./tsApiBridge"]
+external extractFileTypes: string => array(TsNode.t) = "getTypes";
