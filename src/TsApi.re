@@ -350,37 +350,38 @@ module SyntaxKind = {
 module TsType = {
   type t;
 
-  let getText = (_inst: t): string => [%bs.raw {| _inst.getText() |}];
+  [@bs.send] external getText: t => string = "getText";
 };
 
 module TsParDecl = {
   type t;
 
-  let getType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
-  let getName = (_inst: t): string => [%bs.raw {| _inst.getName() |}];
+  [@bs.send] external getType: t => TsType.t = "getType";
+  [@bs.send] external getName: t => string = "getName";
 };
 
 module TypeKind = {
   type t;
 
-  let getType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
-  let getParameters = (_inst: t): array(TsParDecl.t) => [%bs.raw
-    {| _inst.getParameters() |}
-  ];
-  let getReturnType = (_inst: t): TsType.t => [%bs.raw {| _inst.getType() |}];
+  [@bs.get] external type_: t => TsType.t = "type";
+  [@bs.send]
+  external getParameters: t => Js.Array.t(TsParDecl.t) = "getParameters";
+  [@bs.send] external getReturnType: t => TsType.t = "getReturnType";
 };
 
 module TsNode = {
-  type t = {
-    ns: array(string),
-    id: string,
-    kind: SyntaxKind.t,
-    node: TypeKind.t,
-  };
+  type t;
+
+  [@bs.get] external getNs: t => Js.Array.t(string) = "ns";
+  [@bs.get] external getId: t => string = "id";
+  [@bs.get] external getKind: t => SyntaxKind.t = "kind";
+  [@bs.get] external getNode: t => TypeKind.t = "node";
 };
 
-[@bs.module "./tsApiBridge"]
-external extractTypesFromFile: string => array(TsNode.t) = "extractTypesFromFile";
+[@bs.module "../src/tsApiBridge"]
+external extractTypesFromFile: string => Js.Array.t(TsNode.t) =
+  "extractTypesFromFile";
 
-[@bs.module "./tsApiBridge"]
-external extractTypesFromCode: string => array(TsNode.t) = "extractTypesFromCode";
+[@bs.module "../src/tsApiBridge"]
+external extractTypesFromCode: string => Js.Array.t(TsNode.t) =
+  "extractTypesFromCode";

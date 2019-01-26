@@ -26,12 +26,12 @@ function buildtsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker
     });
 }
 
-function extractTypes(program: Program): TsNode[] {
+function extractTypes(program: Program, filename: string): TsNode[] {
     let checker = program.getTypeChecker();
     let tsNodes: TsNode[] = [];
 
     for (const sourceFile of program.getSourceFiles()) {
-        if (sourceFile.isDeclarationFile) {
+        if (sourceFile.fileName == filename) {
             ts.forEachChild(sourceFile, visit);
         }
     }
@@ -47,39 +47,44 @@ function extractTypes(program: Program): TsNode[] {
     }
 }
 
-export function extractTypesFromFile(file: string) {
-    let program = ts.createProgram([file], {
-        target: ts.ScriptTarget.ES5,
-        module: ts.ModuleKind.CommonJS
-    });
-    return extractTypes(program);
+function loadLib() {
+    return fs.readFileSync(path.join(path.dirname(require.resolve('typescript')), 'lib.d.ts')).toString();
 }
 
-export function extractTypesFromCode(code: string) {
-    const libSource = fs.readFileSync(path.join(path.dirname(require.resolve('typescript')), 'lib.d.ts')).toString();
-
-    const compilerHost = {
-        getSourceFile: function (filename: string, languageVersion: any) {
-            if (filename === "file.ts") {
+function createCompilerHost(sourceCodeName: string, code: string): ts.CompilerHost {
+    return {
+        getSourceFile: function (filename: string) {
+            if (filename === sourceCodeName) {
                 return ts.createSourceFile(filename, code, ts.ScriptTarget.ES5);
             }
             else if (filename === "lib.d.ts") {
-                return ts.createSourceFile(filename, libSource, ts.ScriptTarget.ES5);
+                return ts.createSourceFile(filename, loadLib(), ts.ScriptTarget.ES5);
             }
             return undefined;
         },
-        writeFile: function (name: string, text: string, writeByteOrderMark: any) { },
         getDefaultLibFileName: function () { return "lib.d.ts"; },
         useCaseSensitiveFileNames: function () { return false; },
         getCanonicalFileName: function (filename: string) { return filename; },
         getCurrentDirectory: function () { return ""; },
         getNewLine: function () { return "\n"; }
-    };
+    } as any;
+}
 
-    let program = ts.createProgram(["file.ts"], {
+export function extractTypesFromCode(code: string) {
+    const sourceCodeName = "file.d.ts";
+
+    let program = ts.createProgram([sourceCodeName], {
         target: ts.ScriptTarget.ES5,
         module: ts.ModuleKind.CommonJS
-    }, compilerHost as any);
+    }, createCompilerHost(sourceCodeName, code));
 
-    return extractTypes(program);
+    return extractTypes(program, sourceCodeName);
+}
+
+export function extractTypesFromFile(file: string) {
+    let program = ts.createProgram([file], {
+        target: ts.ScriptTarget.ES5,
+        module: ts.ModuleKind.CommonJS
+    });
+    return extractTypes(program, file);
 }

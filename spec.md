@@ -58,3 +58,5 @@ module MyNameType = {
     type t = string;
 }
 ````
+
+See the [api tests](./__tests__/TsApiTest.re) for more details.

@@ -4,24 +4,23 @@ open TsApi;
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
 let makeFakeTsNode =
-    (ns: array(string), id: string, kind: SyntaxKind.t): TsNode.t => {
-  ns,
-  id,
-  kind,
-  node: [%bs.raw
+    (_ns: array(string), _id: string, _kind: SyntaxKind.t): TsNode.t => [%bs.raw
     {|
     {
-      getType: () => ({ getText: () => "string" }),
-      getParameters: () => [
-        ({ getType: () => ({ getText: () => "string" }), getName: () => "arg01" }),
-        ({ getType: () => ({ getText: () => "number" }), getName: () => "arg02" }),
-        ({ getType: () => ({ getText: () => "boolean" }), getName: () => "arg03" }),
-      ],
-      getReturnType: () => ({ getText: () => "boolean" }),
+      ns: _ns,
+      id: _id,
+      node: {
+        type: ({ getText: () => "string" }),
+        getParameters: () => [
+          ({ getType: () => ({ getText: () => "string" }), getName: () => "arg01" }),
+          ({ getType: () => ({ getText: () => "number" }), getName: () => "arg02" }),
+          ({ getType: () => ({ getText: () => "boolean" }), getName: () => "arg03" }),
+        ],
+        getReturnType: () => ({ getText: () => "boolean" }),
+      }
     }
     |}
-  ],
-};
+  ]
 
 let makeFakeTsType = (_typ: string): TsType.t => [%bs.raw
   {| { getText: () => _typ } |}
@@ -356,7 +355,7 @@ describe("Writer", () => {
         ->Writer.getCode,
       )
       |> toEqual(
-           "let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): string => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];",
+           "let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): bool => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];",
          );
     })
   );
@@ -380,7 +379,7 @@ describe("Writer", () => {
         ->Writer.getCode,
       )
       |> toEqual(
-           "[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => string = \"myFunc\"",
+           "[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => bool = \"myFunc\"",
          );
     })
   );

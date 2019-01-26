@@ -41,16 +41,16 @@ let writeRawJs = (state: writerState, text: string) =>
 
 let writeReasonType = (state: writerState, typ: TsNode.t) => {
   let namespaceSplit =
-    switch (typ.ns) {
+    switch (typ->TsNode.getNs) {
     | [||] => ""
     | _ => "_"
     };
 
   state
   ->write("t_")
-  ->write(typ.ns |> Utils.createNameSpaceName)
+  ->write(typ->TsNode.getNs |> Utils.createNameSpaceName)
   ->write(namespaceSplit)
-  ->write(typ.id);
+  ->write(typ->TsNode.getId);
 };
 
 let writeType =
@@ -63,7 +63,7 @@ let writeType =
     switch (
       types
       |> Array.to_list
-      |> List.filter((tp: TsNode.t) => tp.id == tsType->TsType.getText)
+      |> List.filter((tp: TsNode.t) => tp->TsNode.getId == tsType->TsType.getText)
     ) {
     | [] => state->write("t_TODO")
     | [h, ..._] => state->writeReasonType(h)
@@ -139,7 +139,7 @@ let writeArgumentsToFunctionCall =
 };
 
 let writeModuleNameFrom = (state: writerState, typ: TsNode.t) =>
-  state->write(Utils.capitalize(Utils.normalizeName(typ.id)));
+  state->write(Utils.capitalize(Utils.normalizeName(typ->TsNode.getId)));
 
 let writeModuleName = (state: writerState, ns: array(string)) =>
   state->write(
@@ -154,16 +154,16 @@ let writeGetPropertyDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    ("get" ++ Utils.capitalize(typ.id))->Utils.toUniqueName(names);
+    ("get" ++ Utils.capitalize(typ->TsNode.getId))->Utils.toUniqueName(names);
 
   let state =
     state
     ->write("let ")
     ->write(name)
     ->write(" = (_inst: t): ")
-    ->writeType(typ.node->TypeKind.getType, types)
+    ->writeType(typ->TsNode.getNode->TypeKind.type_, types)
     ->write(" => [%bs.raw {| _inst.")
-    ->write(typ.id)
+    ->write(typ->TsNode.getId)
     ->write(" |}];");
 
   (state, names);
@@ -177,16 +177,16 @@ let writeSetPropertyDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    ("set" ++ Utils.capitalize(typ.id))->Utils.toUniqueName(names);
+    ("set" ++ Utils.capitalize(typ->TsNode.getId))->Utils.toUniqueName(names);
 
   let state =
     state
     ->write("let ")
     ->write(name)
     ->write(" = (_inst: t, _value: ")
-    ->writeType(typ.node->TypeKind.getType, types)
+    ->writeType(typ->TsNode.getNode->TypeKind.type_, types)
     ->write("): unit => [%bs.raw {| _inst.")
-    ->write(typ.id)
+    ->write(typ->TsNode.getId)
     ->write(" = _value |}];");
 
   (state, names);
@@ -215,19 +215,19 @@ let writeMethodDecl =
       types: array(TsNode.t),
       names: list(string),
     ) => {
-  let (name, names) = Utils.lowerFirst(typ.id)->Utils.toUniqueName(names);
+  let (name, names) = Utils.lowerFirst(typ->TsNode.getId)->Utils.toUniqueName(names);
 
   let state =
     state
     ->write("let ")
     ->write(name)
     ->write(" = ")
-    ->writeArgumentsToMethodDecl(typ.node->TypeKind.getParameters, types)
+    ->writeArgumentsToMethodDecl(typ->TsNode.getNode->TypeKind.getParameters, types)
     ->write(": ")
-    ->writeType(typ.node->TypeKind.getReturnType, types)
+    ->writeType(typ->TsNode.getNode->TypeKind.getReturnType, types)
     ->write(" => [%bs.raw {| _inst.")
-    ->write(typ.id)
-    ->writeArgumentsToFunctionCall(typ.node->TypeKind.getParameters)
+    ->write(typ->TsNode.getId)
+    ->writeArgumentsToFunctionCall(typ->TsNode.getNode->TypeKind.getParameters)
     ->write(" |}];");
 
   (state, names);
@@ -241,7 +241,7 @@ let writeFunctionDecl =
       ns: array(string),
       names: list(string),
     ) => {
-  let (name, names) = Utils.lowerFirst(typ.id)->Utils.toUniqueName(names);
+  let (name, names) = Utils.lowerFirst(typ->TsNode.getId)->Utils.toUniqueName(names);
 
   let state =
     state
@@ -250,11 +250,11 @@ let writeFunctionDecl =
     ->write("\"] external ")
     ->write(name)
     ->write(": ")
-    ->writeArgumentsToFunctionDecl(typ.node->TypeKind.getParameters, types)
+    ->writeArgumentsToFunctionDecl(typ->TsNode.getNode->TypeKind.getParameters, types)
     ->write(" => ")
-    ->writeType(typ.node->TypeKind.getReturnType, types)
+    ->writeType(typ->TsNode.getNode->TypeKind.getReturnType, types)
     ->write(" = \"")
-    ->write(typ.id)
+    ->write(typ->TsNode.getId)
     ->write("\"");
 
   (state, names);
@@ -268,7 +268,7 @@ let writeVariableDecl =
       ns: array(string),
       names: list(string),
     ) => {
-  let (name, names) = Utils.lowerFirst(typ.id)->Utils.toUniqueName(names);
+  let (name, names) = Utils.lowerFirst(typ->TsNode.getId)->Utils.toUniqueName(names);
 
   let state =
     state
@@ -277,9 +277,9 @@ let writeVariableDecl =
     ->write("\"] external ")
     ->write(name)
     ->write(": ")
-    ->writeType(typ.node->TypeKind.getType, types)
+    ->writeType(typ->TsNode.getNode->TypeKind.type_, types)
     ->write(" = \"")
-    ->write(typ.id)
+    ->write(typ->TsNode.getId)
     ->write("\"");
 
   (state, names);
