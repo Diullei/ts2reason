@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@glennsl/bs-jest": "^0.4.7",
-    "@types/node": "^10.12.18"
+    "@types/node": "^10.12.18",
+    "reason": "^3.3.4"
   }
 }

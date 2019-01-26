@@ -35,7 +35,8 @@ describe(
             Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
             |> Main.convertCodeToReason("type Typ = string")
           )
-          ->Writer.getCode,
+          ->Writer.getCode
+          |> Utils.checkReasonCode,
         )
         |> toEqual("
 module Typ = {
@@ -57,7 +58,8 @@ describe(
           Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
           |> Main.convertCodeToReason("type MyBoolType = boolean")
         )
-        ->Writer.getCode,
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
       )
       |> toEqual("
 module MyBoolType = {
@@ -78,7 +80,8 @@ describe(
           Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
           |> Main.convertCodeToReason("type MyType = number;")
         )
-        ->Writer.getCode,
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
       )
       |> toEqual("
 module MyType = {
@@ -103,7 +106,8 @@ type MyType = number;
 ",
              )
         )
-        ->Writer.getCode,
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
       )
       |> toEqual(
            "

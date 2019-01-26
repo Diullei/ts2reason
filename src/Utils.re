@@ -72,3 +72,14 @@ let makeIndent =
 
 let createNameSpaceName = (ns: array(string)) =>
   ns |> Array.to_list |> String.concat("_") |> normalizeName;
+
+module RefmtJS = {
+  type ast;
+  [@bs.module "reason"] external parseRE: string => ast = "parseRE";
+  [@bs.module "reason"] external printRE: ast => string = "printRE";
+};
+
+let checkReasonCode = (code: string): string => {
+  code |> RefmtJS.parseRE |> RefmtJS.printRE |> ignore;
+  code;
+};
