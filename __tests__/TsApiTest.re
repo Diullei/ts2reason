@@ -63,7 +63,29 @@ describe(
       )
       |> toEqual("
 module MyBoolType = {
-  type t = boolean;
+  type t = bool;
+}
+")
+    )
+  )
+);
+
+describe(
+  "TsApi :: Type alias declaration binding a predefined type :: type myObjType = any",
+  () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type myObjType = any")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyObjType = {
+  type t = 'any;
 }
 ")
     )
@@ -85,7 +107,7 @@ describe(
       )
       |> toEqual("
 module MyType = {
-  type t = number;
+  type t = float;
 }
 ")
     )
@@ -112,11 +134,11 @@ type MyType = number;
       |> toEqual(
            "
 module MyBoolType = {
-  type t = boolean;
+  type t = bool;
 }
 
 module MyType = {
-  type t = number;
+  type t = float;
 }
 ",
          )

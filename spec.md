@@ -59,4 +59,24 @@ module MyNameType = {
 }
 ````
 
-See the [api tests](./__tests__/TsApiTest.re) for more details.
+### The "any" type
+
+In TypeScript, the `any` type is used to describe dynamic values. To represent that type in a `PredefinedType` declaration on ReasonML we can use a generic type:
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyObjType = any;
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+module MyObjType = {
+    type t = 'any;
+}
+````
+
+---
+
+> See the [api tests](./__tests__/TsApiTest.re) for more details.
