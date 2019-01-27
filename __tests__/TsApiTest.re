@@ -1,5 +1,6 @@
 open Jest;
 open TsApi;
+open Ts;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
@@ -8,7 +9,7 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode id", () =>
-      expect(node01->TsNode.getId) |> toEqual("Typ")
+      expect(node01->TsNode.getName) |> toEqual("Typ")
     )
   );
 
@@ -21,20 +22,19 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode node->type", () =>
-      expect(node01->TsNode.getNode->TypeKind.type_->TsType.getText)
-      |> toEqual("string")
+      expect(node01->TsNode.getType->TsType.getName) |> toEqual("string")
     )
   );
 
   Expect.(
     test("extractTypesFromCode isArray", () =>
-      expect(node01->TsNode.isArray) |> toEqual(false)
+      expect(node01->TsNode.getType->TsType.isArray) |> toEqual(false)
     )
   );
 
   Expect.(
     test("extractTypesFromCode typeName", () =>
-      expect(node01->TsNode.getTypeName) |> toEqual("string")
+      expect(node01->TsNode.getType->TsType.getName) |> toEqual("string")
     )
   );
 
@@ -42,13 +42,13 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode isArray", () =>
-      expect(node02->TsNode.isArray) |> toEqual(true)
+      expect(node02->TsNode.getType->TsType.isArray) |> toEqual(true)
     )
   );
 
   Expect.(
     test("extractTypesFromCode arrayElementType->typeName", () =>
-      expect(node02->TsNode.getArrayElementType->TsNode.getTypeName)
+      expect(node02->TsNode.getType->TsType.getArrayType->TsType.getName)
       |> toEqual("boolean")
     )
   );

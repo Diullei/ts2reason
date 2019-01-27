@@ -1,8 +1,7 @@
-import * as ts from 'typescript';
+import ts from 'typescript';
 import {
     SyntaxKind,
     TypeAliasDeclaration,
-    CompilerOptions,
     Program,
     TypeNode
 } from 'typescript';
@@ -10,16 +9,25 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ArrayTypeNode } from 'ts-simple-ast';
 
-type TypeKind = TypeAliasDeclaration | ArrayTypeNode;
+interface TsParameter {
+    name: string;
+    type: TsType;
+}
+
+interface TsType {
+    ns?: string[];
+    name: string;
+    isArray: boolean;
+    arrayType: TsType;
+}
 
 interface TsNode {
-    ns?: string[];
-    id?: string;
+    ns: string[];
+    name: string;
     kind: SyntaxKind;
-    node: TypeKind;
-    isArray: boolean;
-    typeName: string;
-    arrayElementType?: TsNode;
+    type: TsType;
+    returnType: TsType;
+    parameters: TsParameter[];
 }
 
 type WithType = { type: TypeNode };
@@ -37,26 +45,37 @@ function getTypeName(node: WithType) {
 function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
         ns: [],
-        id: node.name.getText(),
+        name: node.name.getText(),
         kind: node.kind,
-        isArray: isArrayType(node),
-        typeName: getTypeName(node),
-        node,
-        arrayElementType: isArrayType(node)
-            ? buildTsNodeFromArrayTypeNode(node.type as any, checker, tsNodes)
-            : undefined
+        type: isArrayType(node)
+            ? buildArrayType(node.type as any, checker, tsNodes)
+            : buildType(node.type as any, checker, tsNodes),
+        returnType: undefined!,
+        parameters: [],
     });
 }
 
-function buildTsNodeFromArrayTypeNode(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+    // TODO: this property `elementType` is not defined on typescript.d.ts. 
+    // Maybe I'm using the wrong typescript version
+    const withType: WithType = { type: (node as any).elementType } as any;
+
     return {
         ns: [],
-        id: 'array',
-        kind: SyntaxKind.ArrayType,
+        name: getTypeName(withType),
+        isArray: true,
+        arrayType: isArrayType(withType)
+            ? buildArrayType(withType.type as any, checker, tsNodes)
+            : buildType(withType.type as any, checker, tsNodes)
+    };
+}
+
+function buildType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+    return {
+        ns: [],
+        name: node.getText(),
         isArray: false,
-        // TODO: this property `elementType` is not defined on typescript.d.ts. Maybe I'm using the wrong typescript version
-        typeName: getTypeName({ type: (node as any).elementType } as any),
-        node
+        arrayType: undefined!
     };
 }
 

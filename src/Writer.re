@@ -50,33 +50,40 @@ let writeReasonType = (state: writerState, typ: TsNode.t) => {
   ->write("t_")
   ->write(typ->TsNode.getNs |> Utils.createNameSpaceName)
   ->write(namespaceSplit)
-  ->write(typ->TsNode.getId);
+  ->write(typ->TsNode.getName);
 };
 
-let writeType =
-    (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
-  switch (tsType->TsType.getText) {
-  | "string" => state->write("string")
-  | "boolean" => state->write("bool")
-  | "number" => state->write("float")
-  | "any" => state->write("'any")
-  | "void"
-  | "never" => state->write("unit")
-  | "symbol" => state->write("Js.Types.symbol")
-  | "null" => state->write("Js.Types.null_val")
-  | "undefined" => state->write("Js.Types.undefined_val")
-  | "object" => state->write("Js.Types.obj_val")
-  | _ =>
-    switch (
-      types
-      |> Array.to_list
-      |> List.filter((tp: TsNode.t) =>
-           tp->TsNode.getId == tsType->TsType.getText
-         )
-    ) {
-    | [] => state->write("t_TODO")
-    | [h, ..._] => state->writeReasonType(h)
-    }
+let rec writeType =
+        (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
+  if (tsType->TsType.isArray) {
+    state
+    ->write("Js.Array.t(")
+    ->writeType(tsType->TsType.getArrayType, types)
+    ->write(")");
+  } else {
+    switch (tsType->TsType.getName) {
+    | "string" => state->write("string")
+    | "boolean" => state->write("bool")
+    | "number" => state->write("float")
+    | "any" => state->write("'any")
+    | "void"
+    | "never" => state->write("unit")
+    | "symbol" => state->write("Js.Types.symbol")
+    | "null" => state->write("Js.Types.null_val")
+    | "undefined" => state->write("Js.Types.undefined_val")
+    | "object" => state->write("Js.Types.obj_val")
+    | _ =>
+      switch (
+        types
+        |> Array.to_list
+        |> List.filter((tp: TsNode.t) =>
+             tp->TsNode.getName == tsType->TsType.getName
+           )
+      ) {
+      | [] => state->write("t_TODO")
+      | [h, ..._] => state->writeReasonType(h)
+      }
+    };
   };
 
 let writeIf =
@@ -96,14 +103,14 @@ let writeParameterName =
   );
 
 let writeParameter =
-    (state: writerState, par: TsParDecl.t, types: array(TsNode.t)) =>
+    (state: writerState, par: TsParameter.t, types: array(TsNode.t)) =>
   state
-  ->writeParameterName(par->TsParDecl.getName, true)
+  ->writeParameterName(par->TsParameter.getName, true)
   ->write(": ")
-  ->writeType(par->TsParDecl.getType, types);
+  ->writeType(par->TsParameter.getType, types);
 
 let writeArgumentsToMethodDecl =
-    (state: writerState, pars: array(TsParDecl.t), types: array(TsNode.t)) => {
+    (state: writerState, pars: array(TsParameter.t), types: array(TsNode.t)) => {
   let state = state->write("(_inst: t");
   (
     pars
@@ -116,7 +123,7 @@ let writeArgumentsToMethodDecl =
 };
 
 let writeArgumentsToFunctionDecl =
-    (state: writerState, pars: array(TsParDecl.t), types: array(TsNode.t)) => {
+    (state: writerState, pars: array(TsParameter.t), types: array(TsNode.t)) => {
   let state = state->write("(");
   pars
   |> Array.fold_left(
@@ -131,7 +138,7 @@ let writeArgumentsToFunctionDecl =
 };
 
 let writeArgumentsToFunctionCall =
-    (state: writerState, pars: array(TsParDecl.t)) => {
+    (state: writerState, pars: array(TsParameter.t)) => {
   let state = state->write("(");
   pars
   |> Array.fold_left(
@@ -139,7 +146,7 @@ let writeArgumentsToFunctionCall =
          (
            state
            ->writeIf(i == 0, "", ", ")
-           ->writeParameterName(par->TsParDecl.getName, true),
+           ->writeParameterName(par->TsParameter.getName, true),
            i + 1,
          ),
        (state, 0),
@@ -148,7 +155,7 @@ let writeArgumentsToFunctionCall =
 };
 
 let writeModuleNameFrom = (state: writerState, typ: TsNode.t) =>
-  state->write(Utils.capitalize(Utils.normalizeName(typ->TsNode.getId)));
+  state->write(Utils.capitalize(Utils.normalizeName(typ->TsNode.getName)));
 
 let writeModuleName = (state: writerState, ns: array(string)) =>
   state->write(
@@ -163,7 +170,7 @@ let writeGetPropertyDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    ("get" ++ Utils.capitalize(typ->TsNode.getId))
+    ("get" ++ Utils.capitalize(typ->TsNode.getName))
     ->Utils.toUniqueName(names);
 
   let state =
@@ -171,9 +178,9 @@ let writeGetPropertyDecl =
     ->write("let ")
     ->write(name)
     ->write(" = (_inst: t): ")
-    ->writeType(typ->TsNode.getNode->TypeKind.type_, types)
+    ->writeType(typ->TsNode.getType, types)
     ->write(" => [%bs.raw {| _inst.")
-    ->write(typ->TsNode.getId)
+    ->write(typ->TsNode.getName)
     ->write(" |}];");
 
   (state, names);
@@ -187,7 +194,7 @@ let writeSetPropertyDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    ("set" ++ Utils.capitalize(typ->TsNode.getId))
+    ("set" ++ Utils.capitalize(typ->TsNode.getName))
     ->Utils.toUniqueName(names);
 
   let state =
@@ -195,9 +202,9 @@ let writeSetPropertyDecl =
     ->write("let ")
     ->write(name)
     ->write(" = (_inst: t, _value: ")
-    ->writeType(typ->TsNode.getNode->TypeKind.type_, types)
+    ->writeType(typ->TsNode.getType, types)
     ->write("): unit => [%bs.raw {| _inst.")
-    ->write(typ->TsNode.getId)
+    ->write(typ->TsNode.getName)
     ->write(" = _value |}];");
 
   (state, names);
@@ -227,24 +234,19 @@ let writeMethodDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    Utils.lowerFirst(typ->TsNode.getId)->Utils.toUniqueName(names);
+    Utils.lowerFirst(typ->TsNode.getName)->Utils.toUniqueName(names);
 
   let state =
     state
     ->write("let ")
     ->write(name)
     ->write(" = ")
-    ->writeArgumentsToMethodDecl(
-        typ->TsNode.getNode->TypeKind.getParameters,
-        types,
-      )
+    ->writeArgumentsToMethodDecl(typ->TsNode.getParameters, types)
     ->write(": ")
-    ->writeType(typ->TsNode.getNode->TypeKind.getReturnType, types)
+    ->writeType(typ->TsNode.getReturnType, types)
     ->write(" => [%bs.raw {| _inst.")
-    ->write(typ->TsNode.getId)
-    ->writeArgumentsToFunctionCall(
-        typ->TsNode.getNode->TypeKind.getParameters,
-      )
+    ->write(typ->TsNode.getName)
+    ->writeArgumentsToFunctionCall(typ->TsNode.getParameters)
     ->write(" |}];");
 
   (state, names);
@@ -259,7 +261,7 @@ let writeFunctionDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    Utils.lowerFirst(typ->TsNode.getId)->Utils.toUniqueName(names);
+    Utils.lowerFirst(typ->TsNode.getName)->Utils.toUniqueName(names);
 
   let state =
     state
@@ -268,14 +270,11 @@ let writeFunctionDecl =
     ->write("\"] external ")
     ->write(name)
     ->write(": ")
-    ->writeArgumentsToFunctionDecl(
-        typ->TsNode.getNode->TypeKind.getParameters,
-        types,
-      )
+    ->writeArgumentsToFunctionDecl(typ->TsNode.getParameters, types)
     ->write(" => ")
-    ->writeType(typ->TsNode.getNode->TypeKind.getReturnType, types)
+    ->writeType(typ->TsNode.getReturnType, types)
     ->write(" = \"")
-    ->write(typ->TsNode.getId)
+    ->write(typ->TsNode.getName)
     ->write("\"");
 
   (state, names);
@@ -290,7 +289,7 @@ let writeVariableDecl =
       names: list(string),
     ) => {
   let (name, names) =
-    Utils.lowerFirst(typ->TsNode.getId)->Utils.toUniqueName(names);
+    Utils.lowerFirst(typ->TsNode.getName)->Utils.toUniqueName(names);
 
   let state =
     state
@@ -299,9 +298,9 @@ let writeVariableDecl =
     ->write("\"] external ")
     ->write(name)
     ->write(": ")
-    ->writeType(typ->TsNode.getNode->TypeKind.type_, types)
+    ->writeType(typ->TsNode.getType, types)
     ->write(" = \"")
-    ->write(typ->TsNode.getId)
+    ->write(typ->TsNode.getName)
     ->write("\"");
 
   (state, names);

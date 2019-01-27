@@ -1,36 +1,55 @@
 open Jest;
 open TsApi;
+open Ts;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
 let makeFakeTsNode =
-    (_ns: array(string), _id: string, _kind: SyntaxKind.t): TsNode.t => [%bs.raw
-    {|
-    {
+    (_ns: array(string), _name: string, _kind: SyntaxKind.t): TsNode.t => [%bs.raw
+  {| {
       ns: _ns,
-      id: _id,
-      node: {
-        type: ({ getText: () => "string" }),
-        getParameters: () => [
-          ({ getType: () => ({ getText: () => "string" }), getName: () => "arg01" }),
-          ({ getType: () => ({ getText: () => "number" }), getName: () => "arg02" }),
-          ({ getType: () => ({ getText: () => "boolean" }), getName: () => "arg03" }),
-        ],
-        getReturnType: () => ({ getText: () => "boolean" }),
-      }
-    }
-    |}
-  ]
-
-let makeFakeTsType = (_typ: string): TsType.t => [%bs.raw
-  {| { getText: () => _typ } |}
+      name: _name,
+      kind: _kind,
+      type: {
+        ns: [],
+        name: "string",
+        isArray: false,
+        arrayType: undefined,
+      },
+      returnType: {
+        ns: [],
+        name: "boolean",
+        isArray: false,
+        arrayType: undefined,
+      },
+      parameters: [{
+          name: "arg01",
+          type: { ns: [], name: "string", isArray: false, arrayType: undefined },
+        }, {
+          name: "arg02",
+          type: { ns: [], name: "number", isArray: false, arrayType: undefined },
+        }, {
+          name: "arg03",
+          type: { ns: [], name: "boolean", isArray: false, arrayType: undefined },
+        }
+      ],
+    } |}
 ];
 
-let makeFakeTsParDec = (_name: string, _typ: string): TsParDecl.t => [%bs.raw
-  {|
-    {
-      getName: () => _name,
-      getType: () => ({ getText: () => _typ })
+let makeFakeTsType = (_typ: string): TsType.t => [%bs.raw
+  {| {
+      ns: [],
+      name: _typ,
+      isArray: false,
+      arrayType: undefined,
+    }
+  |}
+];
+
+let makeFakeTsParDec = (_name: string, _typ: string): TsParameter.t => [%bs.raw
+  {| {
+      name: _name,
+      type: { ns: [], name: _typ, isArray: false, arrayType: undefined },
     }
   |}
 ];
@@ -131,9 +150,7 @@ describe("Writer", () => {
         (makeFakeTsType("xyz"), [||], "t_TODO"),
         (
           makeFakeTsType("MyObj"),
-          [|
-            makeFakeTsNode([||], "MyObj", SyntaxKind.ModuleDeclaration),
-          |],
+          [|makeFakeTsNode([||], "MyObj", SyntaxKind.ModuleDeclaration)|],
           "t_MyObj",
         ),
       ],
@@ -297,11 +314,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeGetPropertyDecl(
-            makeFakeTsNode(
-              [||],
-              "propName",
-              SyntaxKind.PropertyDeclaration,
-            ),
+            makeFakeTsNode([||], "propName", SyntaxKind.PropertyDeclaration),
             [||],
             [],
           )
@@ -320,11 +333,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeSetPropertyDecl(
-            makeFakeTsNode(
-              [||],
-              "propName",
-              SyntaxKind.PropertyDeclaration,
-            ),
+            makeFakeTsNode([||], "propName", SyntaxKind.PropertyDeclaration),
             [||],
             [],
           )
@@ -343,11 +352,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeMethodDecl(
-            makeFakeTsNode(
-              [||],
-              "myFunc",
-              SyntaxKind.MethodDeclaration,
-            ),
+            makeFakeTsNode([||], "myFunc", SyntaxKind.MethodDeclaration),
             [||],
             [],
           )
@@ -366,11 +371,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeFunctionDecl(
-            makeFakeTsNode(
-              [||],
-              "myFunc",
-              SyntaxKind.FunctionDeclaration,
-            ),
+            makeFakeTsNode([||], "myFunc", SyntaxKind.FunctionDeclaration),
             [||],
             [|"myModule"|],
             [],
@@ -390,11 +391,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeVariableDecl(
-            makeFakeTsNode(
-              [||],
-              "myVar",
-              SyntaxKind.VariableDeclaration,
-            ),
+            makeFakeTsNode([||], "myVar", SyntaxKind.VariableDeclaration),
             [||],
             [|"myModule"|],
             [],
@@ -427,11 +424,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeBeginModuleFromType(
-            makeFakeTsNode(
-              [||],
-              "myClass",
-              SyntaxKind.ClassDeclaration,
-            ),
+            makeFakeTsNode([||], "myClass", SyntaxKind.ClassDeclaration),
           )
         ->Writer.writeEndModule
         ->Writer.getCode,
@@ -446,11 +439,7 @@ describe("Writer", () => {
       expect(
         wState
         ->Writer.writeAbstractTypeDeclaration(
-            makeFakeTsNode(
-              [||],
-              "myClass",
-              SyntaxKind.ClassDeclaration,
-            ),
+            makeFakeTsNode([||], "myClass", SyntaxKind.ClassDeclaration),
           )
         ->Writer.getCode,
       )

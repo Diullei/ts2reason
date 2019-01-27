@@ -254,3 +254,43 @@ module MyType = {
     )
   )
 );
+
+describe("Type alias declaration binding an array type :: string[][]", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = string[][];")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Js.Array.t(Js.Array.t(string));
+}
+")
+    )
+  )
+);
+
+describe("Type alias declaration binding an array type :: number[][][]", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = number[][][];")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Js.Array.t(Js.Array.t(Js.Array.t(float)));
+}
+")
+    )
+  )
+);
