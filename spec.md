@@ -28,12 +28,16 @@ PrimaryType:
     ThisType
 
 PredefinedType:
-    any
-    number
-    boolean
-    string
-    symbol
-    void
+    `any`
+    `number`
+    `boolean`
+    `string`
+    `symbol`
+    `void`
+    `null`
+    `undefined`
+    `never`
+    `object`
 ```
 
 ## Type alias declaration binding a predefined type
