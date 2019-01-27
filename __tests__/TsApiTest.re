@@ -34,7 +34,7 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode typeName", () =>
-      expect(node01->TsNode.typeName) |> toEqual("string")
+      expect(node01->TsNode.getTypeName) |> toEqual("string")
     )
   );
 
@@ -48,7 +48,7 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode arrayElementType->typeName", () =>
-      expect(node02->TsNode.arrayElementType->TsNode.typeName)
+      expect(node02->TsNode.getArrayElementType->TsNode.getTypeName)
       |> toEqual("boolean")
     )
   );

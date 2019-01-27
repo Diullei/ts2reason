@@ -7,7 +7,7 @@ let convertType =
   if (node->TsNode.isArray) {
     state
     ->Writer.write("Js.Array.t(")
-    ->Writer.write(node->TsNode.arrayElementType->TsNode.typeName)
+    ->Writer.write(node->TsNode.getArrayElementType->TsNode.getTypeName)
     ->Writer.write(")");
   } else {
     state->Writer.writeType(node->TsNode.getNode->TypeKind.type_, types);

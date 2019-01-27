@@ -377,8 +377,8 @@ module TsNode = {
   [@bs.get] external getKind: t => SyntaxKind.t = "kind";
   [@bs.get] external getNode: t => TypeKind.t = "node";
   [@bs.get] external isArray: t => bool = "isArray";
-  [@bs.get] external typeName: t => string = "typeName";
-  [@bs.get] external arrayElementType: t => t = "arrayElementType";
+  [@bs.get] external getTypeName: t => string = "typeName";
+  [@bs.get] external getArrayElementType: t => t = "arrayElementType";
 };
 
 [@bs.module "../src/tsApiBridge"]
