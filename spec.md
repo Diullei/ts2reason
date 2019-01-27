@@ -99,6 +99,15 @@ module MyObjType = {
 }
 ````
 
+### Types: "symbol", "null", "undefined" and "object"
+
+The types `symbol`, `null`, `undefined` and `object` wull follow the following conversion:
+
+ - `symbol` -> `Js.Types.symbol`
+ - `null` -> `Js.Types.null_val`
+ - `undefined` -> `Js.Types.undefined_val`
+ - `object` -> `Js.Types.obj_val`
+
 ---
 
 > See the [api tests](./__tests__/MainTest.re) for more details.

@@ -134,3 +134,83 @@ module MyType = {
     )
   )
 );
+
+describe("Type alias declaration binding a predefined type :: null", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = null;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Js.Types.null_val;
+}
+")
+    )
+  )
+);
+
+describe("Type alias declaration binding a predefined type :: undefined", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = undefined;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Js.Types.undefined_val;
+}
+")
+    )
+  )
+);
+
+describe("Type alias declaration binding a predefined type :: object", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = object;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Js.Types.obj_val;
+}
+")
+    )
+  )
+);
+
+describe("Type alias declaration binding a predefined type :: symbol", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = symbol;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Js.Types.symbol;
+}
+")
+    )
+  )
+);
