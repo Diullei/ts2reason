@@ -60,6 +60,7 @@ let writeType =
   | "boolean" => state->write("bool")
   | "number" => state->write("float")
   | "any" => state->write("'any")
+  | "void" => state->write("unit")
   | _ =>
     switch (
       types

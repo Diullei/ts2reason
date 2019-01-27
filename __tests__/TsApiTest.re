@@ -93,6 +93,28 @@ module MyObjType = {
 );
 
 describe(
+  "TsApi :: Type alias declaration binding a predefined type :: type myObjType = void",
+  () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type myObjType = void")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyObjType = {
+  type t = unit;
+}
+")
+    )
+  )
+);
+
+describe(
   "TsApi :: Type alias declaration binding a predefined type :: type MyType = number",
   () =>
   Expect.(

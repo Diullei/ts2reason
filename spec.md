@@ -77,6 +77,24 @@ module MyObjType = {
 }
 ````
 
+### The "void" type
+
+In TypeScript, `void` represents the absence of having a type. It's commonly used as the return type of functions that do not return a value. The equivalent in ReasonML is the `unit` type.
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyObjType = void;
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+module MyObjType = {
+    type t = unit;
+}
+````
+
 ---
 
 > See the [api tests](./__tests__/TsApiTest.re) for more details.
