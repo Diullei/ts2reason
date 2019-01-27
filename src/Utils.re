@@ -80,6 +80,6 @@ module RefmtJS = {
 };
 
 let checkReasonCode = (code: string): string => {
-  code |> RefmtJS.parseRE |> RefmtJS.printRE |> ignore;
+  code |> RefmtJS.parseRE |> ignore;
   code;
 };
