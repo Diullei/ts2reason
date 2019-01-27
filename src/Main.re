@@ -2,13 +2,24 @@ open TsApi;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
+let convertType =
+    (state: Writer.writerState, node: TsNode.t, types: array(TsNode.t)) =>
+  if (node->TsNode.isArray) {
+    state
+    ->Writer.write("Js.Array.t(")
+    ->Writer.write(node->TsNode.arrayElementType->TsNode.typeName)
+    ->Writer.write(")");
+  } else {
+    state->Writer.writeType(node->TsNode.getNode->TypeKind.type_, types);
+  };
+
 let convertTypeAliasDeclaration =
     (node: TsNode.t, types: array(TsNode.t), state: Writer.writerState) =>
   state
   ->Writer.writeBeginModuleFromType(node)
   ->Writer.writeNewLine
   ->Writer.write("type t = ")
-  ->Writer.writeType(node->TsNode.getNode->TypeKind.type_, types)
+  ->convertType(node, types)
   ->Writer.write(";")
   ->Writer.writeEndModule
   ->Writer.writeNewLine;

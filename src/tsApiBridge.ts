@@ -3,27 +3,61 @@ import {
     SyntaxKind,
     TypeAliasDeclaration,
     CompilerOptions,
-    Program
+    Program,
+    TypeNode
 } from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ArrayTypeNode } from 'ts-simple-ast';
 
-type TypeKind = TypeAliasDeclaration;
+type TypeKind = TypeAliasDeclaration | ArrayTypeNode;
 
 interface TsNode {
     ns?: string[];
     id?: string;
     kind: SyntaxKind;
     node: TypeKind;
+    isArray: boolean;
+    typeName: string;
+    arrayElementType?: TsNode;
 }
 
-function buildtsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+type WithType = { type: TypeNode };
+
+function isArrayType(node: WithType) {
+    return node.type.kind == SyntaxKind.ArrayType;
+}
+
+function getTypeName(node: WithType) {
+    return node.type.kind == SyntaxKind.ArrayType
+        ? undefined!
+        : node.type.getText();
+}
+
+function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
         ns: [],
         id: node.name.getText(),
         kind: node.kind,
-        node
+        isArray: isArrayType(node),
+        typeName: getTypeName(node),
+        node,
+        arrayElementType: isArrayType(node)
+            ? buildTsNodeFromArrayTypeNode(node.type as any, checker, tsNodes)
+            : undefined
     });
+}
+
+function buildTsNodeFromArrayTypeNode(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    return {
+        ns: [],
+        id: 'array',
+        kind: SyntaxKind.ArrayType,
+        isArray: false,
+        // TODO: this property `elementType` is not defined on typescript.d.ts. Maybe I'm using the wrong typescript version
+        typeName: getTypeName({ type: (node as any).elementType } as any),
+        node
+    };
 }
 
 function extractTypes(program: Program, filename: string): TsNode[] {
@@ -41,7 +75,7 @@ function extractTypes(program: Program, filename: string): TsNode[] {
     function visit(node: ts.Node) {
         switch (node.kind) {
             case SyntaxKind.TypeAliasDeclaration:
-                buildtsNodeFromTypeAliasDeclaration(node as TypeAliasDeclaration, checker, tsNodes);
+                buildTsNodeFromTypeAliasDeclaration(node as TypeAliasDeclaration, checker, tsNodes);
                 break;
         }
     }

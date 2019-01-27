@@ -126,6 +126,29 @@ module MyObjType = {
 }
 ````
 
+## Type alias declaration binding an array type
+
+```
+TypeAliasDeclaration:
+    'type' BindingIdentifier '=' ArrayType ';' 
+```
+
+Performs a simple binding of an array type. In ReasonML we will use the `Js.Array.t('t)` type.
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyNameType = string[];
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+module MyNameType = {
+    type t = Js.Array.t(string);
+}
+````
+
 ---
 
 > See the [api tests](./__tests__/MainTest.re) for more details.
