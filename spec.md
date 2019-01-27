@@ -101,4 +101,4 @@ module MyObjType = {
 
 ---
 
-> See the [api tests](./__tests__/TsApiTest.re) for more details.
+> See the [api tests](./__tests__/MainTest.re) for more details.
