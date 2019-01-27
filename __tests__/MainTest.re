@@ -214,3 +214,23 @@ module MyType = {
     )
   )
 );
+
+describe("Type alias declaration binding a predefined type :: void", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = void;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = unit;
+}
+")
+    )
+  )
+);

@@ -108,6 +108,24 @@ The types `symbol`, `null`, `undefined` and `object` wull follow the following c
  - `undefined` -> `Js.Types.undefined_val`
  - `object` -> `Js.Types.obj_val`
 
+### The "never" type
+
+In TypeScript, the `never` type represents the type of values that never occur. For now we will use the `unit` type to represent it in ReasonML.
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyObjType = never;
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+module MyObjType = {
+    type t = unit;
+}
+````
+
 ---
 
 > See the [api tests](./__tests__/MainTest.re) for more details.

@@ -60,7 +60,8 @@ let writeType =
   | "boolean" => state->write("bool")
   | "number" => state->write("float")
   | "any" => state->write("'any")
-  | "void" => state->write("unit")
+  | "void"
+  | "never" => state->write("unit")
   | "symbol" => state->write("Js.Types.symbol")
   | "null" => state->write("Js.Types.null_val")
   | "undefined" => state->write("Js.Types.undefined_val")
