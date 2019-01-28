@@ -31,17 +31,17 @@ This file contains the specification of the conversions that should be applied i
  [    ] |     ThisType
 
  [done] | PredefinedType:
- [done] |     `any`
- [done] |     `number`
- [done] |     `boolean`
- [done] |     `string`
- [done] |     `symbol`
- [done] |     `void`
- [done] |     `null`
- [done] |     `undefined`
- [done] |     `never`
- [done] |     `object`
- [done] |     `bigint`
+ [done] |     any
+ [done] |     number
+ [done] |     boolean
+ [done] |     string
+ [done] |     symbol
+ [done] |     void
+ [done] |     null
+ [done] |     undefined
+ [done] |     never
+ [done] |     object
+ [done] |     bigint
 ```
 
 ## Type alias declaration binding a predefined type
