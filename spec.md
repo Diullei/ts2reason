@@ -1,6 +1,6 @@
 # Spec - TypeScript conversion to ReasonML
 
-This file contains the specification of the conversions that should be applied in order to represent the TypeScript definition as a ReasonML bonding.
+This file contains the specification of the conversions that should be applied in order to represent the TypeScript definition as a ReasonML binding.
 
 ## TypeScript grammar
 
