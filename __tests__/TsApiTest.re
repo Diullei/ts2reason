@@ -28,7 +28,8 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode isArray", () =>
-      expect(node01->TsNode.getType->TsType.isArray) |> toEqual(false)
+      expect(node01->TsNode.getType->TsType.getTypeKind)
+      |> toEqual(TypeKind.Regular)
     )
   );
 
@@ -42,7 +43,8 @@ describe("Inspect a `type alias` declaration", () => {
 
   Expect.(
     test("extractTypesFromCode isArray", () =>
-      expect(node02->TsNode.getType->TsType.isArray) |> toEqual(true)
+      expect(node02->TsNode.getType->TsType.getTypeKind)
+      |> toEqual(TypeKind.Array)
     )
   );
 

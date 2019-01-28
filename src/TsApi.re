@@ -1,11 +1,21 @@
 open Ts;
 
+module TypeKind = {
+  [@bs.deriving jsConverter]
+  type t =
+    | [@bs.as 0] Regular
+    | [@bs.as 1] Array
+    | [@bs.as 2] Tuple
+    | [@bs.as 3] Union
+    | [@bs.as 3] Intersection
+}
+
 module TsType = {
   type t;
 
   [@bs.get] external getNs: t => Js.Array.t(string) = "ns";
   [@bs.get] external getName: t => string = "name";
-  [@bs.get] external isArray: t => bool = "isArray";
+  [@bs.get] external getTypeKind: t => TypeKind.t = "typeKind";
   [@bs.get] external getArrayType: t => t = "arrayType";
 };
 

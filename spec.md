@@ -7,37 +7,41 @@ This file contains the specification of the conversions that should be applied i
 > This grammar will be extended as new features are implemented
 
 ```
-TypeAliasDeclaration:
-    'type' BindingIdentifier TypeParameters? '=' Type ';' 
+ Status | feature
+ -------+---------
+        |
+ [    ] | TypeAliasDeclaration:
+ [    ] |     'type' BindingIdentifier TypeParameters? '=' Type ';'
 
-Type:
-    Union
-    Intersection
-    PrimaryType
-    FunctionType
-    ConstructorType
+ [    ] | Type:
+ [    ] |     Union
+ [    ] |     Intersection
+ [    ] |     PrimaryType
+ [    ] |     FunctionType
+ [    ] |     ConstructorType
 
-PrimaryType:
-    ParenthesizedType
-    PredefinedType
-    TypeReference
-    ObjectType
-    ArrayType
-    TupleType
-    TypeQuery
-    ThisType
+ [    ] | PrimaryType:
+ [    ] |     ParenthesizedType
+ [    ] |     PredefinedType
+ [    ] |     TypeReference
+ [    ] |     ObjectType
+ [done] |     ArrayType
+ [    ] |     TupleType
+ [    ] |     TypeQuery
+ [    ] |     ThisType
 
-PredefinedType:
-    `any`
-    `number`
-    `boolean`
-    `string`
-    `symbol`
-    `void`
-    `null`
-    `undefined`
-    `never`
-    `object`
+ [done] | PredefinedType:
+ [done] |     `any`
+ [done] |     `number`
+ [done] |     `boolean`
+ [done] |     `string`
+ [done] |     `symbol`
+ [done] |     `void`
+ [done] |     `null`
+ [done] |     `undefined`
+ [done] |     `never`
+ [done] |     `object`
+ [    ] |     `bigint`
 ```
 
 ## Type alias declaration binding a predefined type

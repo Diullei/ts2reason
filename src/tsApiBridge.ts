@@ -9,6 +9,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ArrayTypeNode } from 'ts-simple-ast';
 
+enum TypeKind {
+    Regular = 0,
+    Array = 1,
+    Tuple = 2,
+    Union = 3,
+    Intersection = 4,
+}
+
 interface TsParameter {
     name: string;
     type: TsType;
@@ -17,7 +25,7 @@ interface TsParameter {
 interface TsType {
     ns?: string[];
     name: string;
-    isArray: boolean;
+    typeKind: TypeKind;
     arrayType: TsType;
 }
 
@@ -63,7 +71,7 @@ function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: T
     return {
         ns: [],
         name: getTypeName(withType),
-        isArray: true,
+        typeKind: TypeKind.Array,
         arrayType: isArrayType(withType)
             ? buildArrayType(withType.type as any, checker, tsNodes)
             : buildType(withType.type as any, checker, tsNodes)
@@ -74,7 +82,7 @@ function buildType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): 
     return {
         ns: [],
         name: node.getText(),
-        isArray: false,
+        typeKind: TypeKind.Regular,
         arrayType: undefined!
     };
 }

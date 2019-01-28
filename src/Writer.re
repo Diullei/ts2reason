@@ -55,12 +55,14 @@ let writeReasonType = (state: writerState, typ: TsNode.t) => {
 
 let rec writeType =
         (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
-  if (tsType->TsType.isArray) {
+  switch (tsType->TsType.getTypeKind) {
+  | TypeKind.Array =>
     state
     ->write("Js.Array.t(")
     ->writeType(tsType->TsType.getArrayType, types)
-    ->write(")");
-  } else {
+    ->write(")")
+
+  | _ =>
     switch (tsType->TsType.getName) {
     | "string" => state->write("string")
     | "boolean" => state->write("bool")
@@ -83,7 +85,7 @@ let rec writeType =
       | [] => state->write("t_TODO")
       | [h, ..._] => state->writeReasonType(h)
       }
-    };
+    }
   };
 
 let writeIf =
