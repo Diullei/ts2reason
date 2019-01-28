@@ -37,6 +37,7 @@ module TsNode = {
   [@bs.get] external getReturnType: t => TsType.t = "returnType";
   [@bs.get]
   external getParameters: t => Js.Array.t(TsParameter.t) = "parameters";
+  [@bs.get] external isConst: t => bool = "isConst";
 };
 
 [@bs.module "../src/tsApiBridge"]

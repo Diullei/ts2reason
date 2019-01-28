@@ -358,11 +358,116 @@ describe(
         ->Writer.getCode
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
+      |> toEqual(
+           "
 module MyType = {
   type t = (string, Js.Array.t(float), bool);
 }
-")
+",
+         )
+    )
+  )
+);
+
+describe("Variable declaration binding a simple type :: string", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("declare var a: number;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.val] external a: float = \"a\";
+let setA = (_value: float): float => [%bs.raw {| a = _value |}];
+",
+         )
+    )
+  )
+);
+
+describe("Variable declaration with no type", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("declare var value;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.val] external value: 'any = \"value\";
+let setValue = (_value: 'any): 'any => [%bs.raw {| value = _value |}];
+",
+         )
+    )
+  )
+);
+
+describe("Variable declaration binding a simple type :: (let) string", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("declare let a: number;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.val] external a: float = \"a\";
+let setA = (_value: float): float => [%bs.raw {| a = _value |}];
+",
+         )
+    )
+  )
+);
+
+describe("Variable declaration binding a simple type :: (const) string", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("declare const a: number;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.val] external a: float = \"a\";
+",
+         )
+    )
+  )
+);
+
+describe("Variable declaration list - simple type", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("declare var a: boolean, b, c: number;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.val] external a: bool = \"a\";
+let setA = (_value: bool): bool => [%bs.raw {| a = _value |}];
+[@bs.val] external b: 'any = \"b\";
+let setB = (_value: 'any): 'any => [%bs.raw {| b = _value |}];
+[@bs.val] external c: float = \"c\";
+let setC = (_value: float): float => [%bs.raw {| c = _value |}];
+",
+         )
     )
   )
 );

@@ -1,4 +1,4 @@
-import ts, { TupleTypeNode, ArrayTypeNode } from 'typescript';
+import ts, { TupleTypeNode, ArrayTypeNode, VariableDeclaration } from 'typescript';
 import {
     SyntaxKind,
     TypeAliasDeclaration,
@@ -36,22 +36,22 @@ interface TsNode {
     type: TsType;
     returnType: TsType;
     parameters: TsParameter[];
+    isConst: boolean;
 }
 
 type WithType = { type: TypeNode };
 
-function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
-    tsNodes.push({
-        ns: [],
-        name: node.name.getText(),
-        kind: node.kind,
-        type: buildType(node as any, checker, tsNodes),
-        returnType: undefined!,
-        parameters: [],
-    });
-}
-
 function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    if (!node.type) {
+        return {
+            ns: [],
+            name: 'any',
+            typeKind: TypeKind.Regular,
+            arrayType: undefined!,
+            tupleTypes: undefined!,
+        };
+    }
+
     switch (node.type.kind) {
         case SyntaxKind.ArrayType:
             return buildArrayType(node.type as any, checker, tsNodes);
@@ -96,6 +96,30 @@ function buildRegularType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNo
     };
 }
 
+function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    tsNodes.push({
+        ns: [],
+        name: node.name.getText(),
+        kind: node.kind,
+        type: buildType(node as any, checker, tsNodes),
+        returnType: undefined!,
+        parameters: [],
+        isConst: false,
+    });
+}
+
+function buildTsNodeFromVariableDeclaration(node: VariableDeclaration, isConst: boolean, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    tsNodes.push({
+        ns: [],
+        name: node.name.getText(),
+        kind: node.kind,
+        type: buildType(node as any, checker, tsNodes),
+        returnType: undefined!,
+        parameters: [],
+        isConst,
+    });
+}
+
 function extractTypes(program: Program, filename: string): TsNode[] {
     let checker = program.getTypeChecker();
     let tsNodes: TsNode[] = [];
@@ -108,10 +132,30 @@ function extractTypes(program: Program, filename: string): TsNode[] {
 
     return tsNodes;
 
+    let isConst = false;
     function visit(node: ts.Node) {
         switch (node.kind) {
             case SyntaxKind.TypeAliasDeclaration:
                 buildTsNodeFromTypeAliasDeclaration(node as TypeAliasDeclaration, checker, tsNodes);
+                break;
+
+            case SyntaxKind.VariableDeclarationList:
+                if (node.getChildAt(0).kind === SyntaxKind.ConstKeyword) {
+                    isConst = true;
+                    ts.forEachChild(node, visit);
+                    isConst = false;
+                }
+                else {
+                    ts.forEachChild(node, visit);
+                }
+                break;
+
+            case SyntaxKind.VariableDeclaration:
+                buildTsNodeFromVariableDeclaration(node as VariableDeclaration, isConst, checker, tsNodes);
+                break;
+
+            default:
+                ts.forEachChild(node, visit);
                 break;
         }
     }

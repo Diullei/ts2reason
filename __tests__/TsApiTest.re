@@ -5,53 +5,73 @@ open Ts;
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
 describe("Inspect a `type alias` declaration", () => {
-  let node01 = extractTypesFromCode("type Typ = string")[0];
+  let node = extractTypesFromCode("type Typ = string")[0];
 
   Expect.(
-    test("extractTypesFromCode id", () =>
-      expect(node01->TsNode.getName) |> toEqual("Typ")
+    test("extractTypesFromCode typeAlias name", () =>
+      expect(node->TsNode.getName) |> toEqual("Typ")
     )
   );
 
   Expect.(
-    test("extractTypesFromCode kind", () =>
-      expect(node01->TsNode.getKind)
+    test("extractTypesFromCode typeAlias kind", () =>
+      expect(node->TsNode.getKind)
       |> toEqual(SyntaxKind.TypeAliasDeclaration)
     )
   );
 
   Expect.(
-    test("extractTypesFromCode node->type", () =>
-      expect(node01->TsNode.getType->TsType.getName) |> toEqual("string")
+    test("extractTypesFromCode typeAlias node->type", () =>
+      expect(node->TsNode.getType->TsType.getName) |> toEqual("string")
     )
   );
 
   Expect.(
-    test("extractTypesFromCode isArray", () =>
-      expect(node01->TsNode.getType->TsType.getTypeKind)
+    test("extractTypesFromCode typeAlias isArray", () =>
+      expect(node->TsNode.getType->TsType.getTypeKind)
       |> toEqual(TypeKind.Regular)
     )
   );
 
   Expect.(
-    test("extractTypesFromCode typeName", () =>
-      expect(node01->TsNode.getType->TsType.getName) |> toEqual("string")
+    test("extractTypesFromCode typeAlias typeName", () =>
+      expect(node->TsNode.getType->TsType.getName) |> toEqual("string")
     )
   );
 
-  let node02 = extractTypesFromCode("type Typ = boolean[]")[0];
+  let node = extractTypesFromCode("type Typ = boolean[]")[0];
 
   Expect.(
-    test("extractTypesFromCode isArray", () =>
-      expect(node02->TsNode.getType->TsType.getTypeKind)
+    test("extractTypesFromCode typeAlias isArray", () =>
+      expect(node->TsNode.getType->TsType.getTypeKind)
       |> toEqual(TypeKind.Array)
     )
   );
 
   Expect.(
-    test("extractTypesFromCode arrayElementType->typeName", () =>
-      expect(node02->TsNode.getType->TsType.getArrayType->TsType.getName)
+    test("extractTypesFromCode typeAlias arrayElementType->typeName", () =>
+      expect(node->TsNode.getType->TsType.getArrayType->TsType.getName)
       |> toEqual("boolean")
+    )
+  );
+
+  let node = extractTypesFromCode("declare var a: number;")[0];
+
+  Expect.(
+    test("extractTypesFromCode varDeclaration name", () =>
+      expect(node->TsNode.getName) |> toEqual("a")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode varDeclaration kind", () =>
+      expect(node->TsNode.getKind) |> toEqual(SyntaxKind.VariableDeclaration)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode varDeclaration node->type", () =>
+      expect(node->TsNode.getType->TsType.getName) |> toEqual("number")
     )
   );
 });

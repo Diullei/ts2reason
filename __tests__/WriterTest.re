@@ -33,6 +33,7 @@ let makeFakeTsNode =
           type: { ns: [], name: "boolean", typeKind: 0, arrayType: undefined },
         }
       ],
+      isConst: false,
     } |}
 ];
 

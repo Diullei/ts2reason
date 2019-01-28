@@ -7,19 +7,19 @@ This file contains the specification of the conversions that should be applied i
 > This grammar will be extended as new features are implemented
 
 ```
- Status | feature
- -------+---------
+ Status | Feature
+ -------+--------
         |
  [    ] | TypeAliasDeclaration:
  [    ] |     'type' BindingIdentifier TypeParameters? '=' Type ';'
-
+        |
  [    ] | Type:
  [    ] |     Union
  [    ] |     Intersection
  [    ] |     PrimaryType
  [    ] |     FunctionType
  [    ] |     ConstructorType
-
+        |
  [    ] | PrimaryType:
  [    ] |     ParenthesizedType
  [done] |     PredefinedType
@@ -29,7 +29,7 @@ This file contains the specification of the conversions that should be applied i
  [done] |     TupleType
  [    ] |     TypeQuery
  [    ] |     ThisType
-
+        |
  [done] | PredefinedType:
  [done] |     any
  [done] |     number
@@ -42,6 +42,25 @@ This file contains the specification of the conversions that should be applied i
  [done] |     never
  [done] |     object
  [done] |     bigint
+        |
+ [    ] | AmbientDeclaration:
+ [done] |     'declare' AmbientVariableDeclaration
+ [    ] |     'declare' AmbientFunctionDeclaration
+ [    ] |     'declare' AmbientClassDeclaration
+ [    ] |     'declare' AmbientEnumDeclaration
+ [    ] |     'declare' AmbientNamespaceDeclaration
+        |
+ [done] | AmbientVariableDeclaration:
+ [done] |     'var' AmbientBindingList ';'
+ [done] |     'let' AmbientBindingList ';'
+ [done] |     'const' AmbientBindingList ';'
+        |
+ [done] | AmbientBindingList:
+ [done] |     AmbientBinding
+ [done] |     AmbientBindingList ',' AmbientBinding
+        |
+ [done] | AmbientBinding:
+ [done] |     BindingIdentifier TypeAnnotation?
 ```
 
 ## Type alias declaration binding a predefined type
@@ -176,6 +195,35 @@ module MyType = {
     type t = (string, int, bool);
 }
 ````
+
+## Ambient variable declaration
+
+```
+AmbientVariableDeclaration:
+    'declare' 'var' AmbientBindingList ';'
+    'declare' 'let' AmbientBindingList ';'
+    'declare' 'const' AmbientBindingList ';'
+```
+
+When representing an ambient variable declaration, we will use the `@bs.val` attribute for read the variable value. If the variable is not a const the code needs to allow one to update the variable value. To do that we will generate and update function (set):
+
+Example of a TypeScript declaration:
+
+````typescript
+declare let value1: number;
+declare const value2: number;
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+[@bs.val] external value1: float = "value1";
+let setValue1 = (_value: float): float => [%bs.raw {| value1 = _value |}];
+
+[@bs.val] external value2: float = "value2";
+````
+
+> NOTE: This declaration is an experimental approach.
 
 ---
 
