@@ -8,6 +8,6 @@ I just started to learn ReasonML and something that I'm missing is the ability t
 
 Inspired by the [ts2fable](https://github.com/fable-compiler/ts2fable) project, my ambition with this project is to create a tool to generate ReasonML bindings from TypeScript definition.
 
-Do not expect to find something usable now, but feel free to contribute :)
+Do not expect to find something usable now, but feel free to [contribute](https://github.com/Diullei/ts2reason/issues/1) :)
 
 See the [spec](./spec.md) for more details.
