@@ -1,8 +1,8 @@
 open Jest;
+
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
-describe(
-  "Type alias declaration binding a predefined type :: string", () =>
+describe("Type alias declaration binding a predefined type :: string", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
@@ -215,6 +215,26 @@ module MyType = {
   )
 );
 
+describe("Type alias declaration binding a predefined type :: bigint", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = bigint;")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = Int64.t;
+}
+")
+    )
+  )
+);
+
 describe("Type alias declaration binding a predefined type :: void", () =>
   Expect.(
     test("convertCodeToReason", () =>
@@ -266,11 +286,13 @@ describe("Type alias declaration binding an array type :: string[][]", () =>
         ->Writer.getCode
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
+      |> toEqual(
+           "
 module MyType = {
   type t = Js.Array.t(Js.Array.t(string));
 }
-")
+",
+         )
     )
   )
 );
@@ -286,11 +308,13 @@ describe("Type alias declaration binding an array type :: number[][][]", () =>
         ->Writer.getCode
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
+      |> toEqual(
+           "
 module MyType = {
   type t = Js.Array.t(Js.Array.t(Js.Array.t(float)));
 }
-")
+",
+         )
     )
   )
 );

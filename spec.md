@@ -22,7 +22,7 @@ This file contains the specification of the conversions that should be applied i
 
  [    ] | PrimaryType:
  [    ] |     ParenthesizedType
- [    ] |     PredefinedType
+ [done] |     PredefinedType
  [    ] |     TypeReference
  [    ] |     ObjectType
  [done] |     ArrayType
@@ -41,7 +41,7 @@ This file contains the specification of the conversions that should be applied i
  [done] |     `undefined`
  [done] |     `never`
  [done] |     `object`
- [    ] |     `bigint`
+ [done] |     `bigint`
 ```
 
 ## Type alias declaration binding a predefined type
@@ -103,7 +103,7 @@ module MyObjType = {
 }
 ````
 
-### Types: "symbol", "null", "undefined" and "object"
+### Types: "symbol", "null", "undefined", "object" and "biting"
 
 The types `symbol`, `null`, `undefined` and `object` wull follow the following conversion:
 
@@ -111,6 +111,7 @@ The types `symbol`, `null`, `undefined` and `object` wull follow the following c
  - `null` -> `Js.Types.null_val`
  - `undefined` -> `Js.Types.undefined_val`
  - `object` -> `Js.Types.obj_val`
+ - `biting` -> `Int64.t`
 
 ### The "never" type
 
@@ -142,13 +143,13 @@ Performs a simple binding of an array type. In ReasonML we will use the `Js.Arra
 Example of a TypeScript declaration:
 
 ````typescript
-type MyNameType = string[];
+type MyType = string[];
 ````
 
 Example of a ReasonML equivalent:
 
 ````reason
-module MyNameType = {
+module MyType = {
     type t = Js.Array.t(string);
 }
 ````

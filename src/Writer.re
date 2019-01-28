@@ -74,6 +74,7 @@ let rec writeType =
     | "null" => state->write("Js.Types.null_val")
     | "undefined" => state->write("Js.Types.undefined_val")
     | "object" => state->write("Js.Types.obj_val")
+    | "bigint" => state->write("Int64.t")
     | _ =>
       switch (
         types
