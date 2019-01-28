@@ -318,3 +318,51 @@ module MyType = {
     )
   )
 );
+
+describe(
+  "Type alias declaration binding an array type :: [string, number, boolean]",
+  () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason(
+               "type MyType = [string, number, boolean];",
+             )
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = (string, float, bool);
+}
+")
+    )
+  )
+);
+
+describe(
+  "Type alias declaration binding an array type :: [string, number[], boolean]",
+  () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason(
+               "type MyType = [string, number[], boolean];",
+             )
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = (string, Js.Array.t(float), bool);
+}
+")
+    )
+  )
+);

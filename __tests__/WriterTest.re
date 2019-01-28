@@ -13,24 +13,24 @@ let makeFakeTsNode =
       type: {
         ns: [],
         name: "string",
-        isArray: false,
+        typeKind: 0,
         arrayType: undefined,
       },
       returnType: {
         ns: [],
         name: "boolean",
-        isArray: false,
+        typeKind: 0,
         arrayType: undefined,
       },
       parameters: [{
           name: "arg01",
-          type: { ns: [], name: "string", isArray: false, arrayType: undefined },
+          type: { ns: [], name: "string", typeKind: 0, arrayType: undefined },
         }, {
           name: "arg02",
-          type: { ns: [], name: "number", isArray: false, arrayType: undefined },
+          type: { ns: [], name: "number", typeKind: 0, arrayType: undefined },
         }, {
           name: "arg03",
-          type: { ns: [], name: "boolean", isArray: false, arrayType: undefined },
+          type: { ns: [], name: "boolean", typeKind: 0, arrayType: undefined },
         }
       ],
     } |}
@@ -40,7 +40,7 @@ let makeFakeTsType = (_typ: string): TsType.t => [%bs.raw
   {| {
       ns: [],
       name: _typ,
-      isArray: false,
+      typeKind: 0,
       arrayType: undefined,
     }
   |}
@@ -49,7 +49,7 @@ let makeFakeTsType = (_typ: string): TsType.t => [%bs.raw
 let makeFakeTsParDec = (_name: string, _typ: string): TsParameter.t => [%bs.raw
   {| {
       name: _name,
-      type: { ns: [], name: _typ, isArray: false, arrayType: undefined },
+      type: { ns: [], name: _typ, typeKind: 0, arrayType: undefined },
     }
   |}
 ];

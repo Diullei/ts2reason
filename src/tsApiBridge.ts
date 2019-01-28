@@ -1,4 +1,4 @@
-import ts from 'typescript';
+import ts, { TupleTypeNode, ArrayTypeNode } from 'typescript';
 import {
     SyntaxKind,
     TypeAliasDeclaration,
@@ -7,7 +7,6 @@ import {
 } from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ArrayTypeNode } from 'ts-simple-ast';
 
 enum TypeKind {
     Regular = 0,
@@ -27,6 +26,7 @@ interface TsType {
     name: string;
     typeKind: TypeKind;
     arrayType: TsType;
+    tupleTypes: TsType[];
 }
 
 interface TsNode {
@@ -40,50 +40,59 @@ interface TsNode {
 
 type WithType = { type: TypeNode };
 
-function isArrayType(node: WithType) {
-    return node.type.kind == SyntaxKind.ArrayType;
-}
-
-function getTypeName(node: WithType) {
-    return node.type.kind == SyntaxKind.ArrayType
-        ? undefined!
-        : node.type.getText();
-}
-
 function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
         ns: [],
         name: node.name.getText(),
         kind: node.kind,
-        type: isArrayType(node)
-            ? buildArrayType(node.type as any, checker, tsNodes)
-            : buildType(node.type as any, checker, tsNodes),
+        type: buildType(node as any, checker, tsNodes),
         returnType: undefined!,
         parameters: [],
     });
 }
 
-function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
-    // TODO: this property `elementType` is not defined on typescript.d.ts. 
-    // Maybe I'm using the wrong typescript version
-    const withType: WithType = { type: (node as any).elementType } as any;
+function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    switch (node.type.kind) {
+        case SyntaxKind.ArrayType:
+            return buildArrayType(node.type as any, checker, tsNodes);
 
+        case SyntaxKind.TupleType:
+            return buildTupleType(node.type as any, checker, tsNodes);
+
+        default:
+            return buildRegularType(node.type as any, checker, tsNodes);
+    }
+}
+
+function buildTupleType(node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
         ns: [],
-        name: getTypeName(withType),
-        typeKind: TypeKind.Array,
-        arrayType: isArrayType(withType)
-            ? buildArrayType(withType.type as any, checker, tsNodes)
-            : buildType(withType.type as any, checker, tsNodes)
+        name: undefined!,
+        typeKind: TypeKind.Tuple,
+        arrayType: undefined!,
+        tupleTypes: node.elementTypes.map(et => buildType({ type: et }, checker, tsNodes))
     };
 }
 
-function buildType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+    return {
+        ns: [],
+        name: undefined!,
+        typeKind: TypeKind.Array,
+        // TODO: this property `elementType` is not defined on typescript.d.ts. 
+        // Maybe I'm using the wrong typescript version
+        arrayType: buildType({ type: node.elementType }, checker, tsNodes),
+        tupleTypes: undefined!,
+    };
+}
+
+function buildRegularType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
         ns: [],
         name: node.getText(),
         typeKind: TypeKind.Regular,
-        arrayType: undefined!
+        arrayType: undefined!,
+        tupleTypes: undefined!,
     };
 }
 

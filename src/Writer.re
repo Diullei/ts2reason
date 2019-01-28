@@ -53,14 +53,39 @@ let writeReasonType = (state: writerState, typ: TsNode.t) => {
   ->write(typ->TsNode.getName);
 };
 
+let writeIf =
+    (state: writerState, condition: bool, thenText: string, elseText: string) =>
+  if (condition) {
+    state->write(thenText);
+  } else {
+    state->write(elseText);
+  };
+
 let rec writeType =
-        (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
+        (state: writerState, tsType: TsType.t, types: array(TsNode.t)) => {
   switch (tsType->TsType.getTypeKind) {
   | TypeKind.Array =>
     state
     ->write("Js.Array.t(")
     ->writeType(tsType->TsType.getArrayType, types)
     ->write(")")
+
+  | TypeKind.Tuple =>
+    state
+    ->write("(")
+    ->(
+        state =>
+          tsType->TsType.getTupleTypes
+          |> Array.fold_left(
+               ((state, i), typ) =>
+                 (
+                   state->writeIf(i == 0, "", ", ")->writeType(typ, types),
+                   i + 1,
+                 ),
+               (state, 0),
+             )
+      )
+    |> (((s, _)) => s->write(")"))
 
   | _ =>
     switch (tsType->TsType.getName) {
@@ -88,14 +113,7 @@ let rec writeType =
       }
     }
   };
-
-let writeIf =
-    (state: writerState, condition: bool, thenText: string, elseText: string) =>
-  if (condition) {
-    state->write(thenText);
-  } else {
-    state->write(elseText);
-  };
+};
 
 let writeParameterName =
     (state: writerState, name: string, startWithUnderline: bool) =>

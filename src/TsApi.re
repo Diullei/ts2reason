@@ -7,7 +7,7 @@ module TypeKind = {
     | [@bs.as 1] Array
     | [@bs.as 2] Tuple
     | [@bs.as 3] Union
-    | [@bs.as 3] Intersection
+    | [@bs.as 4] Intersection
 }
 
 module TsType = {
@@ -17,6 +17,7 @@ module TsType = {
   [@bs.get] external getName: t => string = "name";
   [@bs.get] external getTypeKind: t => TypeKind.t = "typeKind";
   [@bs.get] external getArrayType: t => t = "arrayType";
+  [@bs.get] external getTupleTypes: t => Js.Array.t(t) = "tupleTypes";
 };
 
 module TsParameter = {

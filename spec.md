@@ -26,7 +26,7 @@ This file contains the specification of the conversions that should be applied i
  [    ] |     TypeReference
  [    ] |     ObjectType
  [done] |     ArrayType
- [    ] |     TupleType
+ [done] |     TupleType
  [    ] |     TypeQuery
  [    ] |     ThisType
 
@@ -151,6 +151,29 @@ Example of a ReasonML equivalent:
 ````reason
 module MyType = {
     type t = Js.Array.t(string);
+}
+````
+
+## Type alias declaration binding a tuple type
+
+```
+TypeAliasDeclaration:
+    'type' BindingIdentifier '=' TupleType ';' 
+```
+
+Performs a simple binding of a tuple type.
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyType = [string, number, boolean];
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+module MyType = {
+    type t = (string, int, bool);
 }
 ````
 
