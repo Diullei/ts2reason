@@ -67,29 +67,9 @@ let rec writeType =
   | TypeKind.Array => state->writeArrayType(tsType, types)
   | TypeKind.Tuple => state->writeTupleType(tsType, types)
   | _ =>
-    switch (tsType->TsType.getName) {
-    | "string" => state->write("string")
-    | "boolean" => state->write("bool")
-    | "number" => state->write("float")
-    | "any" => state->write("'any")
-    | "void"
-    | "never" => state->write("unit")
-    | "symbol" => state->write("Js.Types.symbol")
-    | "null" => state->write("Js.Types.null_val")
-    | "undefined" => state->write("Js.Types.undefined_val")
-    | "object" => state->write("Js.Types.obj_val")
-    | "bigint" => state->write("Int64.t")
-    | _ =>
-      switch (
-        types
-        |> Array.to_list
-        |> List.filter((tp: TsNode.t) =>
-             tp->TsNode.getName == tsType->TsType.getName
-           )
-      ) {
-      | [] => state->write("t_TODO")
-      | [h, ..._] => state->writeReasonType(h)
-      }
+    switch (state->writePredefinedType(tsType)) {
+    | Some(state) => state
+    | None => state->writeReferenceType(tsType, types)
     }
   };
 }
@@ -115,7 +95,35 @@ and writeTupleType =
              (state, 0),
            )
     )
-  |> (((s, _)) => s->write(")"));
+  |> (((s, _)) => s->write(")"))
+and writePredefinedType =
+    (state: writerState, tsType: TsType.t): option(writerState) =>
+  switch (tsType->TsType.getName) {
+  | "string" => Some(state->write("string"))
+  | "boolean" => Some(state->write("bool"))
+  | "number" => Some(state->write("float"))
+  | "any" => Some(state->write("'any"))
+  | "void"
+  | "never" => Some(state->write("unit"))
+  | "symbol" => Some(state->write("Js.Types.symbol"))
+  | "null" => Some(state->write("Js.Types.null_val"))
+  | "undefined" => Some(state->write("Js.Types.undefined_val"))
+  | "object" => Some(state->write("Js.Types.obj_val"))
+  | "bigint" => Some(state->write("Int64.t"))
+  | _ => None
+  }
+and writeReferenceType =
+    (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
+  switch (
+    types
+    |> Array.to_list
+    |> List.filter((tp: TsNode.t) =>
+         tp->TsNode.getName == tsType->TsType.getName
+       )
+  ) {
+  | [] => state->write("t_TODO")
+  | [h, ..._] => state->writeReasonType(h)
+  };
 
 let writeParameterName =
     (state: writerState, name: string, startWithUnderline: bool) =>

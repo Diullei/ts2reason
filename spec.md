@@ -45,7 +45,7 @@ This file contains the specification of the conversions that should be applied i
         |
  [    ] | AmbientDeclaration:
  [done] |     'declare' AmbientVariableDeclaration
- [    ] |     'declare' AmbientFunctionDeclaration
+ [done] |     'declare' AmbientFunctionDeclaration
  [    ] |     'declare' AmbientClassDeclaration
  [    ] |     'declare' AmbientEnumDeclaration
  [    ] |     'declare' AmbientNamespaceDeclaration
