@@ -64,29 +64,8 @@ let writeIf =
 let rec writeType =
         (state: writerState, tsType: TsType.t, types: array(TsNode.t)) => {
   switch (tsType->TsType.getTypeKind) {
-  | TypeKind.Array =>
-    state
-    ->write("Js.Array.t(")
-    ->writeType(tsType->TsType.getArrayType, types)
-    ->write(")")
-
-  | TypeKind.Tuple =>
-    state
-    ->write("(")
-    ->(
-        state =>
-          tsType->TsType.getTupleTypes
-          |> Array.fold_left(
-               ((state, i), typ) =>
-                 (
-                   state->writeIf(i == 0, "", ", ")->writeType(typ, types),
-                   i + 1,
-                 ),
-               (state, 0),
-             )
-      )
-    |> (((s, _)) => s->write(")"))
-
+  | TypeKind.Array => state->writeArrayType(tsType, types)
+  | TypeKind.Tuple => state->writeTupleType(tsType, types)
   | _ =>
     switch (tsType->TsType.getName) {
     | "string" => state->write("string")
@@ -113,7 +92,30 @@ let rec writeType =
       }
     }
   };
-};
+}
+and writeArrayType =
+    (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
+  state
+  ->write("Js.Array.t(")
+  ->writeType(tsType->TsType.getArrayType, types)
+  ->write(")")
+and writeTupleType =
+    (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
+  state
+  ->write("(")
+  ->(
+      state =>
+        tsType->TsType.getTupleTypes
+        |> Array.fold_left(
+             ((state, i), typ) =>
+               (
+                 state->writeIf(i == 0, "", ", ")->writeType(typ, types),
+                 i + 1,
+               ),
+             (state, 0),
+           )
+    )
+  |> (((s, _)) => s->write(")"));
 
 let writeParameterName =
     (state: writerState, name: string, startWithUnderline: bool) =>
