@@ -7,8 +7,8 @@ module TypeKind = {
     | [@bs.as 1] Array
     | [@bs.as 2] Tuple
     | [@bs.as 3] Union
-    | [@bs.as 4] Intersection
-}
+    | [@bs.as 4] Intersection;
+};
 
 module TsType = {
   type t;
@@ -27,6 +27,12 @@ module TsParameter = {
   [@bs.get] external getType: t => TsType.t = "type";
 };
 
+module TsEnumMember = {
+  type t;
+
+  [@bs.get] external getName: t => string = "name";
+};
+
 module TsNode = {
   type t;
 
@@ -34,9 +40,11 @@ module TsNode = {
   [@bs.get] external getName: t => string = "name";
   [@bs.get] external getKind: t => SyntaxKind.t = "kind";
   [@bs.get] external getType: t => TsType.t = "type";
+  [@bs.get] external isConst: t => bool = "isConst";
   [@bs.get]
   external getParameters: t => Js.Array.t(TsParameter.t) = "parameters";
-  [@bs.get] external isConst: t => bool = "isConst";
+  [@bs.get]
+  external getEnumMembers: t => Js.Array.t(TsEnumMember.t) = "enumMembers";
 };
 
 [@bs.module "../src/tsApiBridge"]

@@ -71,7 +71,7 @@ This file contains the specification of the conversions that should be applied i
  [    ] | AmbientEnumDeclaration:
  [    ] |    EnumDeclaration
         |
- [    ] | EnumDeclaration:
+ [WIP.] | EnumDeclaration:
  [    ] |     'const'? 'enum' BindingIdentifier '{' EnumBody? '}'
         |
  [    ] | EnumBody:
@@ -274,6 +274,90 @@ Example of a ReasonML equivalent:
 ````reason
 [@bs.send] external greet: (string) => unit = "greet";
 ````
+
+## Enum declaration
+
+In TypeScript enums are used to create named constants.
+
+```
+EnumDeclaration:
+    'const'? 'enum' BindingIdentifier '{' EnumMemberList '}'
+```
+
+In TypeScript we can assign an expression value to each of the enum keys. Example:
+
+```typescript
+enum Response {
+    No = 0,
+    Yes = 1,
+    Cancel = "Cancel"
+}
+```
+
+### Converting a numeric zero-based enum (WIP)
+
+When we declare an enum type without assign a value to its keys the first key starts with the value zero.
+
+Example of a TypeScript declaration:
+
+````typescript
+declare enum EnumTyp { 
+    Val1, 
+    Val2, 
+    Val3, 
+};
+````
+
+In the above expression `EnumTyp.Val1` has value `0`, `EnumTyp.Val2` has value `1` an `EnumTyp.Val3` has value `2`.
+
+Example of a ReasonML equivalent:
+
+````reason
+module EnumTyp = {
+  [@bs.deriving jsConverter]
+  type t =
+    | [@bs.as 0] Val1
+    | [@bs.as 1] Val2
+    | [@bs.as 2] Val3;
+}
+````
+
+In TypeScript, if we want to get the enum property name as a string we can use:
+
+````typescript
+declare enum EnumTyp { 
+    Val1, 
+    Val2, 
+    Val3, 
+};
+
+console.log(EnumTyp[EnumTyp.Val2])
+// => "Val2"
+````
+
+To have something equivallent, a function caled `name(...)` will be created in the ReasonML binding to allows the code to extract the key name:
+
+````reason
+module EnumTyp = {
+  [@bs.deriving jsConverter]
+  type t =
+    | [@bs.as 0] Val1
+    | [@bs.as 1] Val2
+    | [@bs.as 2] Val3;
+
+  let name = (v: t) =>
+    switch (v) {
+    | Val1 => "Val1"
+    | Val2 => "Val2"
+    | Val3 => "Val3"
+    };
+}
+
+EnumTyp.Val2 |> EnumTyp.name |> Js.log;
+/* "Val2" */
+````
+
+> NOTE: work in progress, it still needs to implement the other kinds of enum declaration. See https://www.typescriptlang.org/docs/handbook/enums.html and the grammar in the top of this file.
 
 ---
 

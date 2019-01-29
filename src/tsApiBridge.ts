@@ -6,7 +6,8 @@ import {
     TupleTypeNode,
     ArrayTypeNode,
     VariableDeclaration,
-    FunctionDeclaration
+    FunctionDeclaration,
+    EnumDeclaration
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -25,6 +26,10 @@ interface TsParameter {
     type: TsType;
 }
 
+interface TsEnumMember {
+    name: string;
+}
+
 interface TsType {
     ns?: string[];
     name?: string;
@@ -40,6 +45,7 @@ interface TsNode {
     type: TsType;
     parameters: TsParameter[];
     isConst?: boolean;
+    enumMembers?: TsEnumMember[];
 }
 
 type WithType = { type: TypeNode };
@@ -77,8 +83,6 @@ function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: T
     return {
         ns: [],
         typeKind: TypeKind.Array,
-        // TODO: this property `elementType` is not defined on typescript.d.ts. 
-        // Maybe I'm using the wrong typescript version
         arrayType: buildType({ type: node.elementType }, checker, tsNodes),
     };
 }
@@ -119,6 +123,17 @@ function buildTsNodeFromFunctionDeclaration(node: FunctionDeclaration, checker: 
         kind: node.kind,
         type: buildType(node as any, checker, tsNodes),
         parameters: node.parameters.map(p => ({ name: p.name.getText(), type: buildType(p as any, checker, tsNodes) })),
+    });
+}
+
+function buildTsNodeFromEnumDeclaration(node: EnumDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    tsNodes.push({
+        ns: [],
+        name: node.name!.getText(),
+        kind: node.kind,
+        type: null!,
+        parameters: [],
+        enumMembers: node.members.map(p => ({ name: p.name.getText() })),
     });
 }
 
@@ -163,6 +178,10 @@ function extractTypes(program: Program, filename: string): TsNode[] {
                 else {
                     ts.forEachChild(node, visit);
                 }
+                break;
+
+            case SyntaxKind.EnumDeclaration:
+                buildTsNodeFromEnumDeclaration(node as EnumDeclaration, checker, tsNodes);
                 break;
 
             default:

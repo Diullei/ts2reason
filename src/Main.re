@@ -98,6 +98,69 @@ let convertFunctionDeclaration =
   (state, names);
 };
 
+let convertEnumDeclaration =
+    (
+      node: TsNode.t,
+      _types: array(TsNode.t),
+      names: list(string),
+      state: Writer.writerState,
+    ) => (
+  state
+  ->Writer.writeBeginModuleFromType(node)
+  ->Writer.writeNewLine
+  ->Writer.write("[@bs.deriving jsConverter]")
+  ->Writer.writeNewLine
+  ->Writer.write("type t =")
+  ->Writer.increaseIndent
+  ->(
+      state =>
+        node->TsNode.getEnumMembers
+        |> Array.fold_left(
+             ((state, i), enum) =>
+               (
+                 state
+                 ->Writer.writeNewLine
+                 ->Writer.write({j|| [@bs.as $i] |j})
+                 ->Writer.write(enum->TsEnumMember.getName),
+                 i + 1,
+               ),
+             (state, 0),
+           )
+        |> (((s, _)) => s)
+    )
+  ->Writer.write(";")
+  ->Writer.decreaseIndent
+  ->Writer.decreaseIndent
+  ->Writer.writeNewLine
+  ->Writer.increaseIndent
+  ->Writer.writeNewLine
+  ->Writer.write("let name = (v: t) =>")
+  ->Writer.increaseIndent
+  ->Writer.writeNewLine
+  ->Writer.write("switch (v) {")
+  ->(
+      state =>
+        node->TsNode.getEnumMembers
+        |> Array.fold_left(
+             (state, enum) =>
+               state
+               ->Writer.writeNewLine
+               ->Writer.write("| ")
+               ->Writer.write(enum->TsEnumMember.getName)
+               ->Writer.write(" => \"")
+               ->Writer.write(enum->TsEnumMember.getName)
+               ->Writer.write("\""),
+             state,
+           )
+    )
+  ->Writer.writeNewLine
+  ->Writer.write("};")
+  ->Writer.decreaseIndent
+  ->Writer.writeEndModule
+  ->Writer.writeNewLine,
+  names,
+);
+
 let convertCodeToReason = (code: string, state: Writer.writerState) => {
   let names: list(string) = [];
   let types = TsApi.extractTypesFromCode(code);
@@ -113,6 +176,9 @@ let convertCodeToReason = (code: string, state: Writer.writerState) => {
 
          | SyntaxKind.FunctionDeclaration =>
            node->convertFunctionDeclaration(types, names, state)
+
+         | SyntaxKind.EnumDeclaration =>
+           node->convertEnumDeclaration(types, names, state)
 
          | _ => (state->Writer.write("/* ** !INVALID NODE! ** */"), names)
          },

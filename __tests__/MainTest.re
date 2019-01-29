@@ -502,8 +502,10 @@ describe("Function declaration - 002", () =>
         ->Writer.getCode
         |> Utils.checkReasonCode,
       )
-      |> toEqual("[@bs.send] external myFunc: (string, bool) => float = \"myFunc\";
-")
+      |> toEqual(
+           "[@bs.send] external myFunc: (string, bool) => float = \"myFunc\";
+",
+         )
     )
   )
 );
@@ -521,8 +523,45 @@ describe("Function declaration - 003", () =>
         ->Writer.getCode
         |> Utils.checkReasonCode,
       )
-      |> toEqual("[@bs.send] external myFunc: (string, bool) => 'any = \"myFunc\";
-")
+      |> toEqual(
+           "[@bs.send] external myFunc: (string, bool) => 'any = \"myFunc\";
+",
+         )
+    )
+  )
+);
+
+describe("Enum declaration - 001", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason(
+               "declare enum EnumTyp { Val1, Val2, Val3, };",
+             )
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "
+module EnumTyp = {
+  [@bs.deriving jsConverter]
+  type t =
+    | [@bs.as 0] Val1
+    | [@bs.as 1] Val2
+    | [@bs.as 2] Val3;
+
+  let name = (v: t) =>
+    switch (v) {
+    | Val1 => \"Val1\"
+    | Val2 => \"Val2\"
+    | Val3 => \"Val3\"
+    };
+}
+",
+         )
     )
   )
 );

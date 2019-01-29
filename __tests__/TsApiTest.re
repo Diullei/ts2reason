@@ -118,4 +118,32 @@ describe("Inspect a `type alias` declaration", () => {
       |> toEqual("string")
     )
   );
+
+  let node = extractTypesFromCode(
+               "declare enum EnumTyp { Val1, Val2, Val3, };",
+             )[0];
+
+  Expect.(
+    test("extractTypesFromCode enumDeclaration name", () =>
+      expect(node->TsNode.getName) |> toEqual("EnumTyp")
+    )
+  );
+
+   Expect.(
+    test("extractTypesFromCode enumDeclaration kind", () =>
+      expect(node->TsNode.getKind) |> toEqual(SyntaxKind.EnumDeclaration)
+    )
+  ); 
+
+   Expect.(
+    test("extractTypesFromCode enumDeclaration member count", () =>
+      expect(node->TsNode.getEnumMembers |> Array.length) |> toEqual(3)
+    )
+  ); 
+
+   Expect.(
+    test("extractTypesFromCode enumDeclaration member->[0]->name", () =>
+      expect((node->TsNode.getEnumMembers)[0]->TsEnumMember.getName) |> toEqual("Val1")
+    )
+  ); 
 });
