@@ -158,6 +158,23 @@ let writeArgumentsToFunctionDecl =
   |> (((s, _)) => s->write(")"));
 };
 
+let writeTypeArgumentsToFunctionDecl =
+    (state: writerState, pars: array(TsParameter.t), types: array(TsNode.t)) => {
+  let state = state->write("(");
+  pars
+  |> Array.fold_left(
+       ((state, i), par) =>
+         (
+           state
+           ->writeIf(i == 0, "", ", ")
+           ->writeType(par->TsParameter.getType, types),
+           i + 1,
+         ),
+       (state, 0),
+     )
+  |> (((s, _)) => s->write(")"));
+};
+
 let writeArgumentsToFunctionCall =
     (state: writerState, pars: array(TsParameter.t)) => {
   let state = state->write("(");
@@ -264,7 +281,7 @@ let writeMethodDecl =
     ->write(" = ")
     ->writeArgumentsToMethodDecl(typ->TsNode.getParameters, types)
     ->write(": ")
-    ->writeType(typ->TsNode.getReturnType, types)
+    ->writeType(typ->TsNode.getType, types)
     ->write(" => [%bs.raw {| _inst.")
     ->write(typ->TsNode.getName)
     ->writeArgumentsToFunctionCall(typ->TsNode.getParameters)
@@ -273,6 +290,7 @@ let writeMethodDecl =
   (state, names);
 };
 
+/* this function will be removed, see Main.re for the correct implementation */
 let writeFunctionDecl =
     (
       state: writerState,
@@ -293,7 +311,7 @@ let writeFunctionDecl =
     ->write(": ")
     ->writeArgumentsToFunctionDecl(typ->TsNode.getParameters, types)
     ->write(" => ")
-    ->writeType(typ->TsNode.getReturnType, types)
+    ->writeType(typ->TsNode.getType, types)
     ->write(" = \"")
     ->write(typ->TsNode.getName)
     ->write("\"");
@@ -301,6 +319,7 @@ let writeFunctionDecl =
   (state, names);
 };
 
+/* this function will be removed, see Main.re for the correct implementation */
 let writeVariableDecl =
     (
       state: writerState,

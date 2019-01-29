@@ -31,17 +31,17 @@ This file contains the specification of the conversions that should be applied i
  [    ] |     ThisType
         |
  [done] | PredefinedType:
- [done] |     any
- [done] |     number
- [done] |     boolean
- [done] |     string
- [done] |     symbol
- [done] |     void
- [done] |     null
- [done] |     undefined
- [done] |     never
- [done] |     object
- [done] |     bigint
+ [done] |     'any'
+ [done] |     'number'
+ [done] |     'boolean'
+ [done] |     'string'
+ [done] |     'symbol'
+ [done] |     'void'
+ [done] |     'null'
+ [done] |     'undefined'
+ [done] |     'never'
+ [done] |     'object'
+ [done] |     'bigint'
         |
  [    ] | AmbientDeclaration:
  [done] |     'declare' AmbientVariableDeclaration
@@ -61,6 +61,12 @@ This file contains the specification of the conversions that should be applied i
         |
  [done] | AmbientBinding:
  [done] |     BindingIdentifier TypeAnnotation?
+        |
+ [done] | AmbientFunctionDeclaration:
+ [done] |     'function' BindingIdentifier CallSignature ';'
+        |
+ [done] | CallSignature:
+ [done] |     TypeParameter? '(' ParameterList? ')' TypeAnnotation?
 ```
 
 ## Type alias declaration binding a predefined type
@@ -224,6 +230,30 @@ let setValue1 = (_value: float): float => [%bs.raw {| value1 = _value |}];
 ````
 
 > NOTE: This declaration is an experimental approach.
+
+## Ambient function declaration
+
+The `[@bs.send]` attribute will be used to declare the reasonml function.
+
+```
+AmbientFunctionDeclaration:
+    'declare' 'function' BindingIdentifier CallSignature ';'
+
+CallSignature:
+    TypeParameter? '(' ParameterList? ')' TypeAnnotation?
+```
+
+Example of a TypeScript declaration:
+
+````typescript
+declare function greet(greeting: string): void;
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+[@bs.send] external greet: (string) => unit = "greet";
+````
 
 ---
 

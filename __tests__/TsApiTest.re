@@ -74,4 +74,48 @@ describe("Inspect a `type alias` declaration", () => {
       expect(node->TsNode.getType->TsType.getName) |> toEqual("number")
     )
   );
+
+  let node = extractTypesFromCode(
+               "declare function greet(greeting: string): void;",
+             )[0];
+
+  Expect.(
+    test("extractTypesFromCode functionDeclaration name", () =>
+      expect(node->TsNode.getName) |> toEqual("greet")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode functionDeclaration kind", () =>
+      expect(node->TsNode.getKind) |> toEqual(SyntaxKind.FunctionDeclaration)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode functionDeclaration node->type", () =>
+      expect(node->TsNode.getType->TsType.getName) |> toEqual("void")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode functionDeclaration parameter count", () =>
+      expect(node->TsNode.getParameters |> Array.length) |> toEqual(1)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode functionDeclaration parameter name", () =>
+      expect(node->TsNode.getParameters[0]->TsParameter.getName)
+      |> toEqual("greeting")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode functionDeclaration parameter type", () =>
+      expect(
+        node->TsNode.getParameters[0]->TsParameter.getType->TsType.getName,
+      )
+      |> toEqual("string")
+    )
+  );
 });

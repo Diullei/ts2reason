@@ -34,7 +34,6 @@ module TsNode = {
   [@bs.get] external getName: t => string = "name";
   [@bs.get] external getKind: t => SyntaxKind.t = "kind";
   [@bs.get] external getType: t => TsType.t = "type";
-  [@bs.get] external getReturnType: t => TsType.t = "returnType";
   [@bs.get]
   external getParameters: t => Js.Array.t(TsParameter.t) = "parameters";
   [@bs.get] external isConst: t => bool = "isConst";

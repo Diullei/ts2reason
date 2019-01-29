@@ -34,6 +34,7 @@ let convertVariableDeclaration =
   let (setName, names) =
     ("set" ++ Utils.capitalize(node->TsNode.getName))
     ->Utils.toUniqueName(names);
+
   (
     state
     ->Writer.write("[@bs.val] external ")
@@ -68,6 +69,35 @@ let convertVariableDeclaration =
   );
 };
 
+let convertFunctionDeclaration =
+    (
+      node: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+      state: Writer.writerState,
+    ) => {
+  let (name, names) =
+    Utils.lowerFirst(node->TsNode.getName)->Utils.toUniqueName(names);
+
+  let state =
+    state
+    ->Writer.write("[@bs.send] external ")
+    ->Writer.write(name)
+    ->Writer.write(": ")
+    ->Writer.writeTypeArgumentsToFunctionDecl(
+        node->TsNode.getParameters,
+        types,
+      )
+    ->Writer.write(" => ")
+    ->Writer.writeType(node->TsNode.getType, types)
+    ->Writer.write(" = \"")
+    ->Writer.write(node->TsNode.getName)
+    ->Writer.write("\";")
+    ->Writer.writeNewLine;
+
+  (state, names);
+};
+
 let convertCodeToReason = (code: string, state: Writer.writerState) => {
   let names: list(string) = [];
   let types = TsApi.extractTypesFromCode(code);
@@ -80,6 +110,9 @@ let convertCodeToReason = (code: string, state: Writer.writerState) => {
 
          | SyntaxKind.VariableDeclaration =>
            node->convertVariableDeclaration(types, names, state)
+
+         | SyntaxKind.FunctionDeclaration =>
+           node->convertFunctionDeclaration(types, names, state)
 
          | _ => (state->Writer.write("/* ** !INVALID NODE! ** */"), names)
          },

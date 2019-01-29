@@ -1,10 +1,14 @@
-import ts, { TupleTypeNode, ArrayTypeNode, VariableDeclaration } from 'typescript';
 import {
     SyntaxKind,
     TypeAliasDeclaration,
     Program,
-    TypeNode
+    TypeNode,
+    TupleTypeNode,
+    ArrayTypeNode,
+    VariableDeclaration,
+    FunctionDeclaration
 } from 'typescript';
+import ts from 'typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -23,20 +27,19 @@ interface TsParameter {
 
 interface TsType {
     ns?: string[];
-    name: string;
+    name?: string;
     typeKind: TypeKind;
-    arrayType: TsType;
-    tupleTypes: TsType[];
+    arrayType?: TsType;
+    tupleTypes?: TsType[];
 }
 
 interface TsNode {
-    ns: string[];
-    name: string;
+    ns?: string[];
+    name?: string;
     kind: SyntaxKind;
     type: TsType;
-    returnType: TsType;
     parameters: TsParameter[];
-    isConst: boolean;
+    isConst?: boolean;
 }
 
 type WithType = { type: TypeNode };
@@ -47,8 +50,6 @@ function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]) {
             ns: [],
             name: 'any',
             typeKind: TypeKind.Regular,
-            arrayType: undefined!,
-            tupleTypes: undefined!,
         };
     }
 
@@ -67,9 +68,7 @@ function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]) {
 function buildTupleType(node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
         ns: [],
-        name: undefined!,
         typeKind: TypeKind.Tuple,
-        arrayType: undefined!,
         tupleTypes: node.elementTypes.map(et => buildType({ type: et }, checker, tsNodes))
     };
 }
@@ -77,12 +76,10 @@ function buildTupleType(node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: T
 function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
         ns: [],
-        name: undefined!,
         typeKind: TypeKind.Array,
         // TODO: this property `elementType` is not defined on typescript.d.ts. 
         // Maybe I'm using the wrong typescript version
         arrayType: buildType({ type: node.elementType }, checker, tsNodes),
-        tupleTypes: undefined!,
     };
 }
 
@@ -91,8 +88,6 @@ function buildRegularType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNo
         ns: [],
         name: node.getText(),
         typeKind: TypeKind.Regular,
-        arrayType: undefined!,
-        tupleTypes: undefined!,
     };
 }
 
@@ -102,9 +97,7 @@ function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker
         name: node.name.getText(),
         kind: node.kind,
         type: buildType(node as any, checker, tsNodes),
-        returnType: undefined!,
         parameters: [],
-        isConst: false,
     });
 }
 
@@ -114,9 +107,18 @@ function buildTsNodeFromVariableDeclaration(node: VariableDeclaration, isConst: 
         name: node.name.getText(),
         kind: node.kind,
         type: buildType(node as any, checker, tsNodes),
-        returnType: undefined!,
         parameters: [],
         isConst,
+    });
+}
+
+function buildTsNodeFromFunctionDeclaration(node: FunctionDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    tsNodes.push({
+        ns: [],
+        name: node.name!.getText(),
+        kind: node.kind,
+        type: buildType(node as any, checker, tsNodes),
+        parameters: node.parameters.map(p => ({ name: p.name.getText(), type: buildType(p as any, checker, tsNodes) })),
     });
 }
 
@@ -152,6 +154,15 @@ function extractTypes(program: Program, filename: string): TsNode[] {
 
             case SyntaxKind.VariableDeclaration:
                 buildTsNodeFromVariableDeclaration(node as VariableDeclaration, isConst, checker, tsNodes);
+                break;
+
+            case SyntaxKind.FunctionDeclaration:
+                if ((node as FunctionDeclaration).name) {
+                    buildTsNodeFromFunctionDeclaration(node as FunctionDeclaration, checker, tsNodes);
+                }
+                else {
+                    ts.forEachChild(node, visit);
+                }
                 break;
 
             default:

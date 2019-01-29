@@ -16,12 +16,6 @@ let makeFakeTsNode =
         typeKind: 0,
         arrayType: undefined,
       },
-      returnType: {
-        ns: [],
-        name: "boolean",
-        typeKind: 0,
-        arrayType: undefined,
-      },
       parameters: [{
           name: "arg01",
           type: { ns: [], name: "string", typeKind: 0, arrayType: undefined },
@@ -361,7 +355,7 @@ describe("Writer", () => {
         ->Writer.getCode,
       )
       |> toEqual(
-           "let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): bool => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];",
+           "let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): string => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];",
          );
     })
   );
@@ -381,7 +375,7 @@ describe("Writer", () => {
         ->Writer.getCode,
       )
       |> toEqual(
-           "[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => bool = \"myFunc\"",
+           "[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => string = \"myFunc\"",
          );
     })
   );

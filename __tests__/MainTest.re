@@ -440,10 +440,8 @@ describe("Variable declaration binding a simple type :: (const) string", () =>
         ->Writer.getCode
         |> Utils.checkReasonCode,
       )
-      |> toEqual(
-           "[@bs.val] external a: float = \"a\";
-",
-         )
+      |> toEqual("[@bs.val] external a: float = \"a\";
+")
     )
   )
 );
@@ -468,6 +466,63 @@ let setB = (_value: 'any): 'any => [%bs.raw {| b = _value |}];
 let setC = (_value: float): float => [%bs.raw {| c = _value |}];
 ",
          )
+    )
+  )
+);
+
+describe("Function declaration - 001", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason(
+               "declare function greet(greeting: string): void;",
+             )
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("[@bs.send] external greet: (string) => unit = \"greet\";
+")
+    )
+  )
+);
+
+describe("Function declaration - 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason(
+               "declare function myFunc(arg1: string, arg2: boolean): number;",
+             )
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("[@bs.send] external myFunc: (string, bool) => float = \"myFunc\";
+")
+    )
+  )
+);
+
+describe("Function declaration - 003", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason(
+               "declare function myFunc(arg1: string, arg2: boolean);",
+             )
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("[@bs.send] external myFunc: (string, bool) => 'any = \"myFunc\";
+")
     )
   )
 );
