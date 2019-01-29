@@ -67,6 +67,26 @@ This file contains the specification of the conversions that should be applied i
         |
  [done] | CallSignature:
  [done] |     TypeParameter? '(' ParameterList? ')' TypeAnnotation?
+        |
+ [    ] | AmbientEnumDeclaration:
+ [    ] |    EnumDeclaration
+        |
+ [    ] | EnumDeclaration:
+ [    ] |     'const'? 'enum' BindingIdentifier '{' EnumBody? '}'
+        |
+ [    ] | EnumBody:
+ [    ] |     EnumMemberList ',' ?
+        |
+ [    ] | EnumMemberList:
+ [    ] |     EnumMember
+ [    ] |     EnumMemberList ',' EnumMember
+        |
+ [    ] | EnumMember:
+ [    ] |     PropertyName
+ [    ] |     PropertyName '=' EnumValue
+        |
+ [    ] | EnumValue:
+ [    ] |     AssignmentExpression
 ```
 
 ## Type alias declaration binding a predefined type
