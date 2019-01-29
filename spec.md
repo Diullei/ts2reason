@@ -205,7 +205,7 @@ AmbientVariableDeclaration:
     'declare' 'const' AmbientBindingList ';'
 ```
 
-When representing an ambient variable declaration, we will use the `@bs.val` attribute for read the variable value. If the variable is not a const the code needs to allow one to update the variable value. To do that we will generate and update function (set):
+When representing an ambient variable declaration, we will use the `@bs.val` attribute for read the variable value. If the variable is not a constant the code needs to allow one to update the variable value. To do that we will generate an update function (set):
 
 Example of a TypeScript declaration:
 
