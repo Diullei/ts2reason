@@ -129,21 +129,48 @@ describe("Inspect a `type alias` declaration", () => {
     )
   );
 
-   Expect.(
+  Expect.(
     test("extractTypesFromCode enumDeclaration kind", () =>
       expect(node->TsNode.getKind) |> toEqual(SyntaxKind.EnumDeclaration)
     )
-  ); 
+  );
 
-   Expect.(
+  Expect.(
     test("extractTypesFromCode enumDeclaration member count", () =>
       expect(node->TsNode.getEnumMembers |> Array.length) |> toEqual(3)
     )
-  ); 
+  );
 
-   Expect.(
+  Expect.(
     test("extractTypesFromCode enumDeclaration member->[0]->name", () =>
-      expect((node->TsNode.getEnumMembers)[0]->TsEnumMember.getName) |> toEqual("Val1")
+      expect(node->TsNode.getEnumMembers[0]->TsEnumMember.getName)
+      |> toEqual("Val1")
     )
-  ); 
+  );
+
+  let node = extractTypesFromCode("declare type Test = {name: string};")[0];
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral name", () =>
+      expect(node->TsNode.getName) |> toEqual("Test")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral members[0]->name", () =>
+      expect(node->TsNode.getType->TsType.getMembers[0]->TsNode.getName)
+      |> toEqual("name")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral members[0]->type->name", () =>
+      expect(
+        node->TsNode.getType->TsType.getMembers[0]
+        ->TsNode.getType
+        ->TsType.getName,
+      )
+      |> toEqual("string")
+    )
+  );
 });

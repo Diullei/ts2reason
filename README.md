@@ -150,7 +150,7 @@ Example of a TypeScript declaration:
 type MyNameType = string;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyNameType = {
@@ -168,7 +168,7 @@ Example of a TypeScript declaration:
 type MyObjType = any;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyObjType = {
@@ -186,7 +186,7 @@ Example of a TypeScript declaration:
 type MyObjType = unknown;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyObjType = {
@@ -204,7 +204,7 @@ Example of a TypeScript declaration:
 type MyObjType = void;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyObjType = {
@@ -232,7 +232,7 @@ Example of a TypeScript declaration:
 type MyObjType = never;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyObjType = {
@@ -255,7 +255,7 @@ Example of a TypeScript declaration:
 type MyType = string[];
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyType = {
@@ -278,11 +278,38 @@ Example of a TypeScript declaration:
 type MyType = [string, number, boolean];
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 module MyType = {
     type t = (string, int, bool);
+}
+````
+
+## Type alias declaration with an object block
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyType = {
+    prop1: string;
+    prop2: number;
+};
+````
+
+ReasonML equivalent code:
+
+````reason
+type t_MyType;
+
+module MyType = {
+    type t = t_MyType;
+
+    [@bs.get] external getProp1: (t) => string = "prop1";
+    [@bs.send] external setProp1: (t, string) => string = "prop1";
+
+    [@bs.get] external getProp2: (t) => string = "prop2";
+    [@bs.send] external setProp2: (t, string) => string = "prop2";
 }
 ````
 
@@ -304,7 +331,7 @@ declare let value1: number;
 declare const value2: number;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 [@bs.val] external value1: float = "value1";
@@ -333,7 +360,7 @@ Example of a TypeScript declaration:
 declare function greet(greeting: string): void;
 ````
 
-Example of a ReasonML equivalent:
+ReasonML equivalent code:
 
 ````reason
 [@bs.send] external greet: (string) => unit = "greet";

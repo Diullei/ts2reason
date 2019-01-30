@@ -7,7 +7,8 @@ import {
     ArrayTypeNode,
     VariableDeclaration,
     FunctionDeclaration,
-    EnumDeclaration
+    EnumDeclaration,
+    TypeLiteralNode
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -19,6 +20,7 @@ enum TypeKind {
     Tuple = 2,
     Union = 3,
     Intersection = 4,
+    TypeLiteral = 5,
 }
 
 interface TsParameter {
@@ -36,6 +38,7 @@ interface TsType {
     typeKind: TypeKind;
     arrayType?: TsType;
     tupleTypes?: TsType[];
+    members?: TsNode[];
 }
 
 interface TsNode {
@@ -69,6 +72,9 @@ function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]): 
         case SyntaxKind.TupleType:
             return buildTupleType(node.type as any, checker, tsNodes);
 
+        case SyntaxKind.TypeLiteral:
+            return buildTypeLiteral(node.type as any, checker, tsNodes);
+
         default:
             return buildRegularType(node.type as any, checker, tsNodes);
     }
@@ -87,6 +93,28 @@ function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: T
         ns: [],
         typeKind: TypeKind.Array,
         arrayType: buildType({ type: node.elementType }, checker, tsNodes),
+    };
+}
+
+function buildMember(node: ts.TypeElement, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
+    switch (node.kind) {
+        case SyntaxKind.PropertySignature:
+            return {
+                ns: [],
+                name: node.name!.getText(),
+                kind: node.kind,
+                type: buildType(node as any, checker, tsNodes),
+                parameters: [],
+            };
+    }
+    return null!;
+}
+
+function buildTypeLiteral(node: TypeLiteralNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+    return {
+        ns: [],
+        typeKind: TypeKind.TypeLiteral,
+        members: node.members.map(m => buildMember(m, checker, tsNodes)).filter(m => m != null)
     };
 }
 
