@@ -33,7 +33,7 @@ This section contains the specification of the conversions that should be applie
  [    ] |     ConstructorType
         |
  [    ] | PrimaryType:
- [    ] |     ParenthesizedType
+ [done] |     ParenthesizedType
  [done] |     PredefinedType
  [    ] |     TypeReference
  [    ] |     ObjectType
@@ -41,6 +41,9 @@ This section contains the specification of the conversions that should be applie
  [done] |     TupleType
  [    ] |     TypeQuery
  [    ] |     ThisType
+        |
+ [    ] | ParenthesizedType:
+ [    ] |     '(' Type ')'
         |
  [done] | PredefinedType:
  [done] |     'any'

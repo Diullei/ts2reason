@@ -50,7 +50,7 @@ interface TsNode {
 
 type WithType = { type: TypeNode };
 
-function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     if (!node.type) {
         return {
             ns: [],
@@ -60,6 +60,9 @@ function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     }
 
     switch (node.type.kind) {
+        case SyntaxKind.ParenthesizedType:
+            return buildType(node.type as any, checker, tsNodes);
+
         case SyntaxKind.ArrayType:
             return buildArrayType(node.type as any, checker, tsNodes);
 

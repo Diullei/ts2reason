@@ -590,3 +590,43 @@ module EnumTyp = {
     )
   )
 );
+
+describe("ParenthesizedType type :: (number)", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = (number);")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = float;
+}
+")
+    )
+  )
+);
+
+describe("ParenthesizedType type :: (((number)))", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type MyType = (((number)));")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyType = {
+  type t = float;
+}
+")
+    )
+  )
+);
