@@ -63,6 +63,7 @@ This section contains the specification of the conversions that should be applie
  [done] |     'declare' AmbientVariableDeclaration
  [done] |     'declare' AmbientFunctionDeclaration
  [    ] |     'declare' AmbientClassDeclaration
+ [    ] |     'declare' InterfaceDeclaration
  [    ] |     'declare' AmbientEnumDeclaration
  [    ] |     'declare' AmbientNamespaceDeclaration
         |
@@ -103,6 +104,35 @@ This section contains the specification of the conversions that should be applie
         |
  [done] | EnumValue:
  [done] |     AssignmentExpression
+        |
+ [    ] | InterfaceDeclaration:
+ [    ] |     'interface' BindingIdentifier TypeParameters? InterfaceExtendsClause? ObjectType
+        |
+ [    ] | InterfaceExtendsClause:
+ [    ] |     'extends' ClassOrInterfaceTypeList
+        |
+ [    ] | ClassOrInterfaceTypeList:
+ [    ] |     ClassOrInterfaceType
+ [    ] |     ClassOrInterfaceTypeList ',' ClassOrInterfaceType
+        |
+ [    ] | ObjectType:
+ [    ] |     '{' TypeBody? '}'
+        |
+ [    ] | TypeBody:
+ [    ] |     TypeMemberList ';'?
+ [    ] |     TypeMemberList ','?
+        |
+ [    ] | TypeMemberList:
+ [    ] |     TypeMember
+ [    ] |     TypeMemberList ';' TypeMember
+ [    ] |     TypeMemberList ',' TypeMember
+        |
+ [    ] | TypeMember:
+ [    ] |     PropertySignature
+ [    ] |     CallSignature
+ [    ] |     ConstructSignature
+ [    ] |     IndexSignature
+ [    ] |     MethodSignature
 ```
 
 ### Type alias declaration binding a predefined type
