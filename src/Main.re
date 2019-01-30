@@ -108,51 +108,56 @@ let convertEnumDeclaration =
   state
   ->Writer.writeBeginModuleFromType(node)
   ->Writer.writeNewLine
-  ->Writer.write("[@bs.deriving jsConverter]")
+  ->Writer.write("type t;")
   ->Writer.writeNewLine
-  ->Writer.write("type t =")
-  ->Writer.increaseIndent
   ->(
       state =>
         node->TsNode.getEnumMembers
         |> Array.fold_left(
-             ((state, i), enum) =>
+             ((state, keyNames), enum) => {
+               let (name, keyNames) =
+                 Utils.lowerFirst(enum->TsEnumMember.getName)
+                 ->Utils.toUniqueName(keyNames);
                (
                  state
                  ->Writer.writeNewLine
-                 ->Writer.write({j|| [@bs.as $i] |j})
-                 ->Writer.write(enum->TsEnumMember.getName),
-                 i + 1,
-               ),
-             (state, 0),
+                 ->Writer.write("let ")
+                 ->Writer.write(name)
+                 ->Writer.write(": t = [%bs.raw {| ")
+                 ->Writer.write(Utils.capitalize(node->TsNode.getName))
+                 ->Writer.write(".")
+                 ->Writer.write(enum->TsEnumMember.getName)
+                 ->Writer.write(" |}];"),
+                 keyNames,
+               );
+             },
+             (state, ["name_", "fromName_"]),
            )
         |> (((s, _)) => s)
     )
-  ->Writer.write(";")
-  ->Writer.decreaseIndent
-  ->Writer.decreaseIndent
   ->Writer.writeNewLine
+  ->Writer.writeNewLine
+  ->Writer.write("let name_ = (_key: t): option(string) =>")
   ->Writer.increaseIndent
   ->Writer.writeNewLine
-  ->Writer.write("let name = (v: t) =>")
+  ->Writer.write("switch ([%bs.raw {| EnumTyp[_key] |}]) {")
+  ->Writer.writeNewLine
+  ->Writer.write("| Some(v) => Some(v)")
+  ->Writer.writeNewLine
+  ->Writer.write("| _ => None")
+  ->Writer.writeNewLine
+  ->Writer.write("};")
+  ->Writer.decreaseIndent
+  ->Writer.writeNewLine
+  ->Writer.writeNewLine
+  ->Writer.write("let fromName_ = (_name: string): option(t) =>")
   ->Writer.increaseIndent
   ->Writer.writeNewLine
-  ->Writer.write("switch (v) {")
-  ->(
-      state =>
-        node->TsNode.getEnumMembers
-        |> Array.fold_left(
-             (state, enum) =>
-               state
-               ->Writer.writeNewLine
-               ->Writer.write("| ")
-               ->Writer.write(enum->TsEnumMember.getName)
-               ->Writer.write(" => \"")
-               ->Writer.write(enum->TsEnumMember.getName)
-               ->Writer.write("\""),
-             state,
-           )
-    )
+  ->Writer.write("switch ([%bs.raw {| EnumTyp[_name] |}]) {")
+  ->Writer.writeNewLine
+  ->Writer.write("| Some(v) => Some(v)")
+  ->Writer.writeNewLine
+  ->Writer.write("| _ => None")
   ->Writer.writeNewLine
   ->Writer.write("};")
   ->Writer.decreaseIndent

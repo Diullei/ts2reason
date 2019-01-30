@@ -103,6 +103,7 @@ and writePredefinedType =
   | "boolean" => Some(state->write("bool"))
   | "number" => Some(state->write("float"))
   | "any" => Some(state->write("'any"))
+  | "unknown" => Some(state->write("'unknown"))
   | "void"
   | "never" => Some(state->write("unit"))
   | "symbol" => Some(state->write("Js.Types.symbol"))

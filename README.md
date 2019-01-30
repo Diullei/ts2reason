@@ -54,6 +54,7 @@ This section contains the specification of the conversions that should be applie
  [done] |     'never'
  [done] |     'object'
  [done] |     'bigint'
+ [done] |     'unknown'
         |
  [    ] | AmbientDeclaration:
  [done] |     'declare' AmbientVariableDeclaration
@@ -80,25 +81,25 @@ This section contains the specification of the conversions that should be applie
  [done] | CallSignature:
  [done] |     TypeParameter? '(' ParameterList? ')' TypeAnnotation?
         |
- [    ] | AmbientEnumDeclaration:
- [    ] |    EnumDeclaration
+ [done] | AmbientEnumDeclaration:
+ [done] |    EnumDeclaration
         |
- [WIP.] | EnumDeclaration:
- [    ] |     'const'? 'enum' BindingIdentifier '{' EnumBody? '}'
+ [done] | EnumDeclaration:
+ [done] |     'const'? 'enum' BindingIdentifier '{' EnumBody? '}'
         |
- [    ] | EnumBody:
- [    ] |     EnumMemberList ',' ?
+ [done] | EnumBody:
+ [done] |     EnumMemberList ',' ?
         |
- [    ] | EnumMemberList:
- [    ] |     EnumMember
- [    ] |     EnumMemberList ',' EnumMember
+ [done] | EnumMemberList:
+ [done] |     EnumMember
+ [done] |     EnumMemberList ',' EnumMember
         |
- [    ] | EnumMember:
- [    ] |     PropertyName
- [    ] |     PropertyName '=' EnumValue
+ [done] | EnumMember:
+ [done] |     PropertyName
+ [done] |     PropertyName '=' EnumValue
         |
- [    ] | EnumValue:
- [    ] |     AssignmentExpression
+ [done] | EnumValue:
+ [done] |     AssignmentExpression
 ```
 
 ### Type alias declaration binding a predefined type
@@ -139,6 +140,24 @@ Example of a ReasonML equivalent:
 ````reason
 module MyObjType = {
     type t = 'any;
+}
+````
+
+#### The "unknown" type
+
+In TypeScript the `unknown` type is the type-safe counterpart of `any`. Anything is assignable to unknown, but unknown isn’t assignable to anything but itself and any without a type assertion or a control flow based narrowing. For now the equivalent type in ReasonML will be a generic type (`'unknown`).
+
+Example of a TypeScript declaration:
+
+````typescript
+type MyObjType = unknown;
+````
+
+Example of a ReasonML equivalent:
+
+````reason
+module MyObjType = {
+    type t = 'unknown;
 }
 ````
 
@@ -293,36 +312,37 @@ In TypeScript enums are used to create named constants.
 
 ```
 EnumDeclaration:
-    'const'? 'enum' BindingIdentifier '{' EnumMemberList '}'
+    'declare' 'const'? 'enum' BindingIdentifier '{' EnumMemberList '}'
 ```
 
 In TypeScript we can assign an expression value to each of the enum keys. Example:
 
 ```typescript
-enum Response {
+declare enum Enum1 {
     No = 0,
     Yes = 1,
-    Cancel = "Cancel"
+    Cancel = "Cancel",
+}
+
+declare enum Enum2 {
+    None = 0,
+    Other = 1 + 3 + 4 * 6,
 }
 ```
 
-#### Converting a numeric zero-based enum (WIP)
-
-When we declare an enum type without assign a value to its keys the first key starts with the value zero.
+One alternative that I normally use when I'm writing some bindings is to write the `enum` as a ReasonML `variant`:
 
 Example of a TypeScript declaration:
 
 ````typescript
 declare enum EnumTyp { 
-    Val1, 
-    Val2, 
-    Val3, 
+    Val1 = 0, 
+    Val2 = 1, 
+    Val3 = 2, 
 };
 ````
 
-In the above expression `EnumTyp.Val1` has value `0`, `EnumTyp.Val2` has value `1` an `EnumTyp.Val3` has value `2`.
-
-Example of a ReasonML equivalent:
+ReasonML equivalent:
 
 ````reason
 module EnumTyp = {
@@ -334,7 +354,34 @@ module EnumTyp = {
 }
 ````
 
-In TypeScript, if we want to get the enum property name as a string we can use:
+The problem here is that by design the `[@bs.as ...]` attrbute will not allow us to defined all the possible expressions from the TypeScript side. One alternative that I'm trying to use on `ts2reason` is to create the `enum` equivalent as a regular module type. See the next example.
+
+TypeScript declaration using static expressions as value:
+
+````typescript
+declare enum EnumTyp { 
+    Val1 = 0, 
+    Val2 = 1 + 3, 
+    Val3 = 2 + a + 4, 
+};
+````
+
+ReasonML equivalent:
+
+````reason
+module EnumTyp = {
+  type t;
+
+  let val1: t = [%bs.raw {| EnumTyp.Val1 |}];
+  let val2: t = [%bs.raw {| EnumTyp.Val2 |}];
+  let val3: t = [%bs.raw {| EnumTyp.Val3 |}];
+  // ...
+};
+````
+
+It is not a beautful design bot it allows to recreate any `enum` type, no metter with kind of expression it has.
+
+Continuing with the TypeScript `enum` notation, if we want to get the `enum` property name as a string we can use:
 
 ````typescript
 declare enum EnumTyp { 
@@ -345,31 +392,40 @@ declare enum EnumTyp {
 
 console.log(EnumTyp[EnumTyp.Val2])
 // => "Val2"
+
+console.log(EnumTyp["Val2"])
+// => EnumTyp.Val2
 ````
 
-To have something equivallent, a function caled `name(...)` will be created in the ReasonML binding to allows the code to extract the key name:
+To have the equivalent behaviour on ReasonML side the code will generate two aditional functions `name_(...)` and `fromName_(...)`:
 
 ````reason
 module EnumTyp = {
-  [@bs.deriving jsConverter]
-  type t =
-    | [@bs.as 0] Val1
-    | [@bs.as 1] Val2
-    | [@bs.as 2] Val3;
+  type t;
 
-  let name = (v: t) =>
-    switch (v) {
-    | Val1 => "Val1"
-    | Val2 => "Val2"
-    | Val3 => "Val3"
+  let val1: t = [%bs.raw {| EnumTyp.Val1 |}];
+  let val2: t = [%bs.raw {| EnumTyp.Val2 |}];
+  let val3: t = [%bs.raw {| EnumTyp.Val3 |}];
+
+  let name_ = (_key: t): option(string) =>
+    switch ([%bs.raw {| EnumTyp[_key] |}]) {
+    | Some(v) => Some(v)
+    | _ => None
     };
-}
 
-EnumTyp.Val2 |> EnumTyp.name |> Js.log;
-/* "Val2" */
+  let fromName_ = (_name: string): option(t) =>
+    switch ([%bs.raw {| EnumTyp[_name] |}]) {
+    | Some(v) => Some(v)
+    | _ => None
+    };
+};
+
+EnumTyp.val2->EnumTyp.name_ |> Js.log;
+/* => "Val2" */
+
+"Val2"->EnumTyp.fromName_ |> Js.log;
+/* => EnumTyp.Val2 */
 ````
-
-> NOTE: work in progress, it still needs to implement the other kinds of enum declaration. See https://www.typescriptlang.org/docs/handbook/enums.html and the grammar in the top of this file.
 
 ---
 

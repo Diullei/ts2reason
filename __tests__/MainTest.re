@@ -62,6 +62,26 @@ module MyObjType = {
   )
 );
 
+describe("Type alias declaration binding a predefined type :: unknown", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        (
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          |> Main.convertCodeToReason("type myObjType = unknown")
+        )
+        ->Writer.getCode
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual("
+module MyObjType = {
+  type t = 'unknown;
+}
+")
+    )
+  )
+);
+
 describe("Type alias declaration binding a predefined type :: void", () =>
   Expect.(
     test("convertCodeToReason", () =>
@@ -547,17 +567,22 @@ describe("Enum declaration - 001", () =>
       |> toEqual(
            "
 module EnumTyp = {
-  [@bs.deriving jsConverter]
-  type t =
-    | [@bs.as 0] Val1
-    | [@bs.as 1] Val2
-    | [@bs.as 2] Val3;
-
-  let name = (v: t) =>
-    switch (v) {
-    | Val1 => \"Val1\"
-    | Val2 => \"Val2\"
-    | Val3 => \"Val3\"
+  type t;
+  
+  let val1: t = [%bs.raw {| EnumTyp.Val1 |}];
+  let val2: t = [%bs.raw {| EnumTyp.Val2 |}];
+  let val3: t = [%bs.raw {| EnumTyp.Val3 |}];
+  
+  let name_ = (_key: t): option(string) =>
+    switch ([%bs.raw {| EnumTyp[_key] |}]) {
+    | Some(v) => Some(v)
+    | _ => None
+    };
+  
+  let fromName_ = (_name: string): option(t) =>
+    switch ([%bs.raw {| EnumTyp[_name] |}]) {
+    | Some(v) => Some(v)
+    | _ => None
     };
 }
 ",
