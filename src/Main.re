@@ -4,119 +4,6 @@ open Writer;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
-let createTypeAssignDeclaration =
-    (writer: writerState, node: TsNode.t, typeNames: list(string)) => {
-  let name = "t_" ++ Utils.capitalize(node->TsNode.getName);
-  (
-    writer->write("type t = ")->write(name)->write(";"),
-    [name, ...typeNames],
-  );
-};
-
-let createTypeDeclaration =
-    (writer: writerState, node: TsNode.t, types: array(TsNode.t)) =>
-  writer
-  ->write("type t = ")
-  ->writeType(node->TsNode.getType, types)
-  ->write(";");
-
-let createGetName = (node: TsNode.t, names: list(string)) =>
-  ("get" ++ Utils.capitalize(node->TsNode.getName))
-  ->Utils.toUniqueName(names);
-
-let createSetName = (node: TsNode.t, names: list(string)) =>
-  ("set" ++ Utils.capitalize(node->TsNode.getName))
-  ->Utils.toUniqueName(names);
-
-let createUniqueName = (name: string, names: list(string)) =>
-  name->Utils.lowerFirst->Utils.toUniqueName(names);
-
-let createMemberGetFunction =
-    (
-      writer: writerState,
-      node: TsNode.t,
-      types: array(TsNode.t),
-      names: list(string),
-    ) => {
-  let (name, names) = node->createGetName(names);
-
-  (
-    writer
-    ->write({j|[@bs.get] external $name: (t) => |j})
-    ->writeType(node->TsNode.getType, types)
-    ->write(" = \"")
-    ->write(node->TsNode.getName)
-    ->write("\";"),
-    names,
-  );
-};
-
-let createMemberSetFunction =
-    (
-      writer: writerState,
-      node: TsNode.t,
-      types: array(TsNode.t),
-      names: list(string),
-    ) => {
-  let (name, names) = node->createSetName(names);
-
-  (
-    writer
-    ->write({j|[@bs.send] external $name: (t, |j})
-    ->writeType(node->TsNode.getType, types)
-    ->write(") => ")
-    ->writeType(node->TsNode.getType, types)
-    ->write(" = \"")
-    ->write(node->TsNode.getName)
-    ->write("\";"),
-    names,
-  );
-};
-
-let createGetSetFunction =
-    (
-      writer: writerState,
-      node: TsNode.t,
-      types: array(TsNode.t),
-      names: list(string),
-    ) => {
-  let (writer, names) = writer->createMemberGetFunction(node, types, names);
-  let writer = writer->writeNewLine;
-  let (writer, names) = writer->createMemberSetFunction(node, types, names);
-  (writer, names);
-};
-
-let convertTypeAliasDeclarationType =
-    (
-      writer: writerState,
-      node: TsNode.t,
-      types: array(TsNode.t),
-      _names: list(string),
-      typeNames: list(string),
-    ) =>
-  switch (node->TsNode.getType->TsType.getTypeKind) {
-  | TypeKind.TypeLiteral =>
-    let (writer, typeNames) =
-      writer->createTypeAssignDeclaration(node, typeNames);
-    (
-      writer->(
-                writer =>
-                  node->TsNode.getType->TsType.getMembers
-                  |> Array.fold_left(
-                       ((writer, memberNames), member) =>
-                         writer
-                         ->writeNewLine
-                         ->writeNewLine
-                         ->createGetSetFunction(member, types, memberNames),
-                       (writer, []),
-                     )
-                  |> (((s, _)) => s)
-              ),
-      typeNames,
-    );
-  | _ => (writer->createTypeDeclaration(node, types), typeNames)
-  };
-
 let convertTypeAliasDeclaration =
     (
       node: TsNode.t,
@@ -125,10 +12,24 @@ let convertTypeAliasDeclaration =
       writer: writerState,
       typeNames: list(string),
     ) => {
-  let writer = writer->writeBeginModuleFromType(node)->writeNewLine;
   let (writer, typeNames) =
-    writer->convertTypeAliasDeclarationType(node, types, names, typeNames);
-  let writer = writer->writeEndModule->writeNewLine;
+    switch (node->TsNode.getType->TsType.getTypeKind) {
+    | TypeKind.TypeLiteral =>
+      node->createLiteralType(types, names, writer, typeNames)
+
+    | _ => (
+        writer
+        ->writeBeginModuleFromType(node)
+        ->writeNewLine
+        ->write("type t = ")
+        ->writeType(node->TsNode.getType, types)
+        ->write(";")
+        ->writeEndModule
+        ->writeNewLine,
+        typeNames,
+      )
+    };
+
   (writer, typeNames, names);
 };
 

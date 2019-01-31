@@ -79,6 +79,7 @@ and writeArrayType =
   ->write("Js.Array.t(")
   ->writeType(tsType->TsType.getArrayType, types)
   ->write(")")
+
 and writeTupleType =
     (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
   state
@@ -96,6 +97,7 @@ and writeTupleType =
            )
     )
   |> (((s, _)) => s->write(")"))
+
 and writePredefinedType =
     (state: writerState, tsType: TsType.t): option(writerState) =>
   switch (tsType->TsType.getName) {
@@ -113,6 +115,7 @@ and writePredefinedType =
   | "bigint" => Some(state->write("Int64.t"))
   | _ => None
   }
+
 and writeReferenceType =
     (state: writerState, tsType: TsType.t, types: array(TsNode.t)) =>
   switch (
@@ -125,6 +128,154 @@ and writeReferenceType =
   | [] => state->write("t_TODO")
   | [h, ..._] => state->writeReasonType(h)
   };
+
+let writeModuleNameFrom = (state: writerState, typ: TsNode.t) =>
+  state->write(Utils.capitalize(Utils.normalizeName(typ->TsNode.getName)));
+
+let writeModuleName = (state: writerState, ns: array(string)) =>
+  state->write(
+    Utils.capitalize(Utils.normalizeName(ns[(ns |> Array.length) - 1])),
+  );
+
+let writeBeginModuleFromNs = (state: writerState, ns: array(string)) =>
+  state
+  ->writeNewLine
+  ->write("module ")
+  ->writeModuleName(ns)
+  ->write(" = {")
+  ->increaseIndent;
+
+let writeBeginModuleFromType = (state: writerState, typ: TsNode.t) =>
+  state
+  ->writeNewLine
+  ->write("module ")
+  ->writeModuleNameFrom(typ)
+  ->write(" = {")
+  ->increaseIndent;
+
+let writeEndModule = (state: writerState) =>
+  state->decreaseIndent->writeNewLine->write("}");
+
+let writeAbstractTypeDeclaration = (state: writerState, typ: TsNode.t) =>
+  state->write("type t = ")->writeReasonType(typ)->write(";");
+
+let createTypeAssignDeclaration =
+    (writer: writerState, node: TsNode.t, typeNames: list(string)) => {
+  let name = "t_" ++ Utils.capitalize(node->TsNode.getName);
+  (
+    writer->write("type t = ")->write(name)->write(";"),
+    [name, ...typeNames],
+  );
+};
+
+let createGetName = (node: TsNode.t, names: list(string)) =>
+  ("get" ++ Utils.capitalize(node->TsNode.getName))
+  ->Utils.toUniqueName(names);
+
+let createSetName = (node: TsNode.t, names: list(string)) =>
+  ("set" ++ Utils.capitalize(node->TsNode.getName))
+  ->Utils.toUniqueName(names);
+
+let createUniqueName = (name: string, names: list(string)) =>
+  name->Utils.lowerFirst->Utils.toUniqueName(names);
+
+let createMemberGetFunction =
+    (
+      writer: writerState,
+      node: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  let (name, names) = node->createGetName(names);
+
+  (
+    writer
+    ->write({j|[@bs.get] external $name: (t) => |j})
+    ->writeType(node->TsNode.getType, types)
+    ->write(" = \"")
+    ->write(node->TsNode.getName)
+    ->write("\";"),
+    names,
+  );
+};
+
+let createMemberSetFunction =
+    (
+      writer: writerState,
+      node: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  let (name, names) = node->createSetName(names);
+
+  (
+    writer
+    ->write({j|[@bs.send] external $name: (t, |j})
+    ->writeType(node->TsNode.getType, types)
+    ->write(") => ")
+    ->writeType(node->TsNode.getType, types)
+    ->write(" = \"")
+    ->write(node->TsNode.getName)
+    ->write("\";"),
+    names,
+  );
+};
+
+let createGetSetFunction =
+    (
+      writer: writerState,
+      node: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+    ) => {
+  let (writer, names) = writer->createMemberGetFunction(node, types, names);
+  let writer = writer->writeNewLine;
+  let (writer, names) = writer->createMemberSetFunction(node, types, names);
+  (writer, names);
+};
+
+let createLiteralTypeBlock =
+    (
+      writer: writerState,
+      node: TsNode.t,
+      types: array(TsNode.t),
+      _names: list(string),
+      typeNames: list(string),
+    ) => {
+  let (writer, typeNames) =
+    writer->createTypeAssignDeclaration(node, typeNames);
+  (
+    writer->(
+              writer =>
+                node->TsNode.getType->TsType.getMembers
+                |> Array.fold_left(
+                     ((writer, memberNames), member) =>
+                       writer
+                       ->writeNewLine
+                       ->writeNewLine
+                       ->createGetSetFunction(member, types, memberNames),
+                     (writer, []),
+                   )
+                |> (((s, _)) => s)
+            ),
+    typeNames,
+  );
+};
+
+let createLiteralType =
+    (
+      node: TsNode.t,
+      types: array(TsNode.t),
+      names: list(string),
+      writer: writerState,
+      typeNames: list(string),
+    ) => {
+  let writer = writer->writeBeginModuleFromType(node)->writeNewLine;
+  let (writer, typeNames) =
+    writer->createLiteralTypeBlock(node, types, names, typeNames);
+  let writer = writer->writeEndModule->writeNewLine;
+  (writer, typeNames);
+};
 
 let writeParameterName =
     (state: writerState, name: string, startWithUnderline: bool) =>
@@ -202,14 +353,6 @@ let writeArgumentsToFunctionCall =
      )
   |> (((s, _)) => s->write(")"));
 };
-
-let writeModuleNameFrom = (state: writerState, typ: TsNode.t) =>
-  state->write(Utils.capitalize(Utils.normalizeName(typ->TsNode.getName)));
-
-let writeModuleName = (state: writerState, ns: array(string)) =>
-  state->write(
-    Utils.capitalize(Utils.normalizeName(ns[(ns |> Array.length) - 1])),
-  );
 
 let writeGetPropertyDecl =
     (
@@ -356,25 +499,3 @@ let writeVariableDecl =
 
   (state, names);
 };
-
-let writeBeginModuleFromNs = (state: writerState, ns: array(string)) =>
-  state
-  ->writeNewLine
-  ->write("module ")
-  ->writeModuleName(ns)
-  ->write(" = {")
-  ->increaseIndent;
-
-let writeBeginModuleFromType = (state: writerState, typ: TsNode.t) =>
-  state
-  ->writeNewLine
-  ->write("module ")
-  ->writeModuleNameFrom(typ)
-  ->write(" = {")
-  ->increaseIndent;
-
-let writeEndModule = (state: writerState) =>
-  state->decreaseIndent->writeNewLine->write("}");
-
-let writeAbstractTypeDeclaration = (state: writerState, typ: TsNode.t) =>
-  state->write("type t = ")->writeReasonType(typ)->write(";");
