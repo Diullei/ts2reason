@@ -510,6 +510,55 @@ module EnumTyp = {
   )
 );
 
+describe("Enum declaration - 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+enum FileAccess {
+    // constant members
+    None,
+    Read    = 1 << 1,
+    Write   = 1 << 2,
+    ReadWrite  = Read | Write,
+    // computed member
+    G = \"123\".length
+}
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "
+module FileAccess = {
+  type t;
+  
+  let none: t = [%bs.raw {| FileAccess.None |}];
+  let read: t = [%bs.raw {| FileAccess.Read |}];
+  let write: t = [%bs.raw {| FileAccess.Write |}];
+  let readWrite: t = [%bs.raw {| FileAccess.ReadWrite |}];
+  let g: t = [%bs.raw {| FileAccess.G |}];
+  
+  let name_ = (_key: t): option(string) =>
+    switch ([%bs.raw {| EnumTyp[_key] |}]) {
+    | Some(v) => Some(v)
+    | _ => None
+    };
+  
+  let fromName_ = (_name: string): option(t) =>
+    switch ([%bs.raw {| EnumTyp[_name] |}]) {
+    | Some(v) => Some(v)
+    | _ => None
+    };
+}
+",
+         )
+    )
+  )
+);
+
 describe("ParenthesizedType type :: (number)", () =>
   Expect.(
     test("convertCodeToReason", () =>
