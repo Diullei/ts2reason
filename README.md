@@ -115,7 +115,7 @@ This section contains the specification of the conversions that should be applie
  [    ] |     ClassOrInterfaceType
  [    ] |     ClassOrInterfaceTypeList ',' ClassOrInterfaceType
         |
- [    ] | ObjectType:
+ [WIP.] | ObjectType:
  [    ] |     '{' TypeBody? '}'
         |
  [    ] | TypeBody:
@@ -128,12 +128,18 @@ This section contains the specification of the conversions that should be applie
  [    ] |     TypeMemberList ',' TypeMember
         |
  [    ] | TypeMember:
- [    ] |     PropertySignature
+ [WIP.] |     PropertySignature
  [    ] |     CallSignature
  [    ] |     ConstructSignature
  [    ] |     IndexSignature
  [    ] |     MethodSignature
 ```
+
+Declaration context:
+
+- [ ] Global - _Work in progress_
+- [ ] Namespace
+- [ ] Module
 
 ### Type alias declaration binding a predefined type
 
@@ -312,6 +318,8 @@ module MyType = {
     [@bs.send] external setProp2: (t, string) => string = "prop2";
 }
 ````
+
+Since TypeScript allows us to define recursive references we are declaring all the types as an abstract type in the header of the code. See the `type t_MyType;` in the code snippet above.
 
 ### Ambient variable declaration
 

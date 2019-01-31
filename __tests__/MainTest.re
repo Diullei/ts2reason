@@ -6,11 +6,8 @@ describe("Type alias declaration binding a predefined type :: string", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type Typ = string")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type Typ = string")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -26,11 +23,8 @@ describe("Type alias declaration binding a predefined type :: boolean", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyBoolType = boolean")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyBoolType = boolean")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -46,11 +40,8 @@ describe("Type alias declaration binding a predefined type :: any", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type myObjType = any")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type myObjType = any")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -66,11 +57,8 @@ describe("Type alias declaration binding a predefined type :: unknown", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type myObjType = unknown")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type myObjType = unknown")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -86,11 +74,8 @@ describe("Type alias declaration binding a predefined type :: void", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type myObjType = void")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type myObjType = void")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -106,11 +91,8 @@ describe("Type alias declaration binding a predefined type :: number", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = number;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = number;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -128,16 +110,13 @@ describe(
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
 type myBoolType = boolean;
 type MyType = number;
 ",
-             )
-        )
-        ->Writer.getCode
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -159,11 +138,8 @@ describe("Type alias declaration binding a predefined type :: null", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = null;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = null;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -179,11 +155,8 @@ describe("Type alias declaration binding a predefined type :: undefined", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = undefined;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = undefined;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -199,11 +172,8 @@ describe("Type alias declaration binding a predefined type :: object", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = object;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = object;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -219,11 +189,8 @@ describe("Type alias declaration binding a predefined type :: symbol", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = symbol;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = symbol;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -239,11 +206,8 @@ describe("Type alias declaration binding a predefined type :: bigint", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = bigint;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = bigint;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -259,11 +223,8 @@ describe("Type alias declaration binding a predefined type :: void", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = void;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = void;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -279,11 +240,8 @@ describe("Type alias declaration binding an array type :: string[]", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = string[];")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = string[];")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -299,11 +257,8 @@ describe("Type alias declaration binding an array type :: string[][]", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = string[][];")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = string[][];")
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -321,11 +276,8 @@ describe("Type alias declaration binding an array type :: number[][][]", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = number[][][];")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = number[][][];")
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -345,13 +297,10 @@ describe(
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "type MyType = [string, number, boolean];",
-             )
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "type MyType = [string, number, boolean];",
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -369,13 +318,10 @@ describe(
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "type MyType = [string, number[], boolean];",
-             )
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "type MyType = [string, number[], boolean];",
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -393,11 +339,8 @@ describe("Variable declaration binding a simple type :: string", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("declare var a: number;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("declare var a: number;")
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -413,11 +356,8 @@ describe("Variable declaration with no type", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("declare var value;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("declare var value;")
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -433,11 +373,8 @@ describe("Variable declaration binding a simple type :: (let) string", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("declare let a: number;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("declare let a: number;")
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -453,11 +390,8 @@ describe("Variable declaration binding a simple type :: (const) string", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("declare const a: number;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("declare const a: number;")
         |> Utils.checkReasonCode,
       )
       |> toEqual("[@bs.val] external a: float = \"a\";
@@ -470,11 +404,8 @@ describe("Variable declaration list - simple type", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("declare var a: boolean, b, c: number;")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("declare var a: boolean, b, c: number;")
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -494,13 +425,10 @@ describe("Function declaration - 001", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "declare function greet(greeting: string): void;",
-             )
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "declare function greet(greeting: string): void;",
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual("[@bs.send] external greet: (string) => unit = \"greet\";
@@ -513,13 +441,10 @@ describe("Function declaration - 002", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "declare function myFunc(arg1: string, arg2: boolean): number;",
-             )
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "declare function myFunc(arg1: string, arg2: boolean): number;",
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -534,13 +459,10 @@ describe("Function declaration - 003", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "declare function myFunc(arg1: string, arg2: boolean);",
-             )
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "declare function myFunc(arg1: string, arg2: boolean);",
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -555,13 +477,10 @@ describe("Enum declaration - 001", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason(
-               "declare enum EnumTyp { Val1, Val2, Val3, };",
-             )
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "declare enum EnumTyp { Val1, Val2, Val3, };",
+           )
         |> Utils.checkReasonCode,
       )
       |> toEqual(
@@ -595,11 +514,8 @@ describe("ParenthesizedType type :: (number)", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = (number);")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = (number);")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -615,11 +531,8 @@ describe("ParenthesizedType type :: (((number)))", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = (((number)));")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason("type MyType = (((number)));")
         |> Utils.checkReasonCode,
       )
       |> toEqual("
@@ -635,14 +548,44 @@ describe("Type alias declaration binding a literal type - 001", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
-        (
-          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-          |> Main.convertCodeToReason("type MyType = { prop1: string; prop2: number; };")
-        )
-        ->Writer.getCode
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "type MyType = { prop1: string; prop2: number; };",
+           )
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
+      |> toEqual(
+           "type t_MyType;
+
+module MyType = {
+  type t = t_MyType;
+  
+  [@bs.get] external getProp1: (t) => string = \"prop1\";
+  [@bs.send] external setProp1: (t, string) => string = \"prop1\";
+  
+  [@bs.get] external getProp2: (t) => float = \"prop2\";
+  [@bs.send] external setProp2: (t, float) => float = \"prop2\";
+}
+",
+         )
+    )
+  )
+);
+
+describe("Type alias declaration binding a literal type - 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             type MyType = { prop1: string; prop2: number; };
+             type MyType2 = { prop1: string; prop2: number; };",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_MyType2;
 type t_MyType;
 
 module MyType = {
@@ -654,7 +597,55 @@ module MyType = {
   [@bs.get] external getProp2: (t) => float = \"prop2\";
   [@bs.send] external setProp2: (t, float) => float = \"prop2\";
 }
-")
+
+module MyType2 = {
+  type t = t_MyType2;
+  
+  [@bs.get] external getProp1: (t) => string = \"prop1\";
+  [@bs.send] external setProp1: (t, string) => string = \"prop1\";
+  
+  [@bs.get] external getProp2: (t) => float = \"prop2\";
+  [@bs.send] external setProp2: (t, float) => float = \"prop2\";
+}
+",
+         )
+    )
+  )
+);
+
+describe("Type alias declaration binding a literal type - 003", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+            "
+            type GreetingSettings = {
+              greeting: string;
+              duration: number;
+              color: string;
+            };
+            ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_GreetingSettings;
+
+module GreetingSettings = {
+  type t = t_GreetingSettings;
+  
+  [@bs.get] external getGreeting: (t) => string = \"greeting\";
+  [@bs.send] external setGreeting: (t, string) => string = \"greeting\";
+  
+  [@bs.get] external getDuration: (t) => float = \"duration\";
+  [@bs.send] external setDuration: (t, float) => float = \"duration\";
+  
+  [@bs.get] external getColor: (t) => string = \"color\";
+  [@bs.send] external setColor: (t, string) => string = \"color\";
+}
+",
+         )
     )
   )
 );

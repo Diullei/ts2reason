@@ -3,11 +3,14 @@ open Ts;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
-let createTypeAssignDeclaration = (state: Writer.writerState, node: TsNode.t) =>
-  state
-  ->Writer.write("type t = t_")
-  ->Writer.write(Utils.capitalize(node->TsNode.getName))
-  ->Writer.write(";");
+let createTypeAssignDeclaration =
+    (state: Writer.writerState, node: TsNode.t, typeNames: list(string)) => {
+  let name = "t_" ++ Utils.capitalize(node->TsNode.getName);
+  (
+    state->Writer.write("type t = ")->Writer.write(name)->Writer.write(";"),
+    [name, ...typeNames],
+  );
+};
 
 let createTypeDeclaration =
     (state: Writer.writerState, node: TsNode.t, types: array(TsNode.t)) =>
@@ -88,25 +91,29 @@ let convertTypeAliasDeclarationType =
       node: TsNode.t,
       types: array(TsNode.t),
       _names: list(string),
+      typeNames: list(string),
     ) =>
   switch (node->TsNode.getType->TsType.getTypeKind) {
   | TypeKind.TypeLiteral =>
-    state
-    ->createTypeAssignDeclaration(node)
-    ->(
-        state =>
-          node->TsNode.getType->TsType.getMembers
-          |> Array.fold_left(
-               ((state, memberNames), member) =>
-                 state
-                 ->Writer.writeNewLine
-                 ->Writer.writeNewLine
-                 ->createGetSetFunction(member, types, memberNames),
-               (state, []),
-             )
-          |> (((s, _)) => s)
-      )
-  | _ => state->createTypeDeclaration(node, types)
+    let (state, typeNames) =
+      state->createTypeAssignDeclaration(node, typeNames);
+    (
+      state->(
+               state =>
+                 node->TsNode.getType->TsType.getMembers
+                 |> Array.fold_left(
+                      ((state, memberNames), member) =>
+                        state
+                        ->Writer.writeNewLine
+                        ->Writer.writeNewLine
+                        ->createGetSetFunction(member, types, memberNames),
+                      (state, []),
+                    )
+                 |> (((s, _)) => s)
+             ),
+      typeNames,
+    );
+  | _ => (state->createTypeDeclaration(node, types), typeNames)
   };
 
 let convertTypeAliasDeclaration =
@@ -115,15 +122,15 @@ let convertTypeAliasDeclaration =
       types: array(TsNode.t),
       names: list(string),
       state: Writer.writerState,
-    ) => (
-  state
-  ->Writer.writeBeginModuleFromType(node)
-  ->Writer.writeNewLine
-  ->convertTypeAliasDeclarationType(node, types, names)
-  ->Writer.writeEndModule
-  ->Writer.writeNewLine,
-  names,
-);
+      typeNames: list(string),
+    ) => {
+  let state =
+    state->Writer.writeBeginModuleFromType(node)->Writer.writeNewLine;
+  let (state, typeNames) =
+    state->convertTypeAliasDeclarationType(node, types, names, typeNames);
+  let state = state->Writer.writeEndModule->Writer.writeNewLine;
+  (state, typeNames, names);
+};
 
 let convertVariableDeclaration =
     (
@@ -131,6 +138,7 @@ let convertVariableDeclaration =
       types: array(TsNode.t),
       names: list(string),
       state: Writer.writerState,
+      typeNames: list(string),
     ) => {
   let (valName, names) = node->TsNode.getName->createUniqueName(names);
   let (setName, names) = node->createSetName(names);
@@ -164,6 +172,7 @@ let convertVariableDeclaration =
           state;
         }
     ),
+    typeNames,
     names,
   );
 };
@@ -174,6 +183,7 @@ let convertFunctionDeclaration =
       types: array(TsNode.t),
       names: list(string),
       state: Writer.writerState,
+      typeNames: list(string),
     ) => {
   let (name, names) = node->TsNode.getName->createUniqueName(names);
   let state =
@@ -192,7 +202,7 @@ let convertFunctionDeclaration =
     ->Writer.write("\";")
     ->Writer.writeNewLine;
 
-  (state, names);
+  (state, typeNames, names);
 };
 
 let convertEnumDeclaration =
@@ -201,6 +211,7 @@ let convertEnumDeclaration =
       _types: array(TsNode.t),
       names: list(string),
       state: Writer.writerState,
+      typeNames: list(string),
     ) => (
   state
   ->Writer.writeBeginModuleFromType(node)
@@ -261,31 +272,54 @@ let convertEnumDeclaration =
   ->Writer.decreaseIndent
   ->Writer.writeEndModule
   ->Writer.writeNewLine,
+  typeNames,
   names,
 );
 
 let convertCodeToReason = (code: string, state: Writer.writerState) => {
-  let names: list(string) = [];
   let types = TsApi.extractTypesFromCode(code);
-  types
-  |> Array.fold_left(
-       ((state, names), node) =>
-         switch (node->TsNode.getKind) {
-         | SyntaxKind.TypeAliasDeclaration =>
-           node->convertTypeAliasDeclaration(types, names, state)
+  let (state, typeNames) =
+    types
+    |> Array.fold_left(
+         ((state, typeNames, names), node) =>
+           switch (node->TsNode.getKind) {
+           | SyntaxKind.TypeAliasDeclaration =>
+             node->convertTypeAliasDeclaration(types, names, state, typeNames)
 
-         | SyntaxKind.VariableDeclaration =>
-           node->convertVariableDeclaration(types, names, state)
+           | SyntaxKind.VariableDeclaration =>
+             node->convertVariableDeclaration(types, names, state, typeNames)
 
-         | SyntaxKind.FunctionDeclaration =>
-           node->convertFunctionDeclaration(types, names, state)
+           | SyntaxKind.FunctionDeclaration =>
+             node->convertFunctionDeclaration(types, names, state, typeNames)
 
-         | SyntaxKind.EnumDeclaration =>
-           node->convertEnumDeclaration(types, names, state)
+           | SyntaxKind.EnumDeclaration =>
+             node->convertEnumDeclaration(types, names, state, typeNames)
 
-         | _ => (state->Writer.write("/* ** !INVALID NODE! ** */"), names)
-         },
-       (state, names),
-     )
-  |> (((s, _)) => s);
+           | _ => (
+               state->Writer.write("/* ** !INVALID NODE! ** */"),
+               typeNames,
+               names,
+             )
+           },
+         (state, [], []),
+       )
+    |> (((state, typeNames, _)) => (state, typeNames));
+
+  let headerState =
+    Writer.make(
+      ~nl=state.nl,
+      ~code="",
+      ~currentIdentation=state.currentIdentation,
+    );
+
+  let headerState =
+    typeNames
+    |> List.fold_left(
+         (headerState, typeName) =>
+           headerState
+           ->Writer.write({j|type $typeName;|j})
+           ->Writer.writeNewLine,
+         headerState,
+       );
+  headerState->Writer.getCode ++ state->Writer.getCode;
 };
