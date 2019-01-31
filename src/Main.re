@@ -212,69 +212,74 @@ let convertEnumDeclaration =
       names: list(string),
       state: Writer.writerState,
       typeNames: list(string),
-    ) => (
-  state
-  ->Writer.writeBeginModuleFromType(node)
-  ->Writer.writeNewLine
-  ->Writer.write("type t;")
-  ->Writer.writeNewLine
-  ->(
-      state =>
-        node->TsNode.getEnumMembers
-        |> Array.fold_left(
-             ((state, keyNames), enum) => {
-               let (name, keyNames) =
-                 enum->TsEnumMember.getName->createUniqueName(keyNames);
-               (
-                 state
-                 ->Writer.writeNewLine
-                 ->Writer.write("let ")
-                 ->Writer.write(name)
-                 ->Writer.write(": t = [%bs.raw {| ")
-                 ->Writer.write(Utils.capitalize(node->TsNode.getName))
-                 ->Writer.write(".")
-                 ->Writer.write(enum->TsEnumMember.getName)
-                 ->Writer.write(" |}];"),
-                 keyNames,
-               );
-             },
-             (state, ["name_", "fromName_"]),
-           )
-        |> (((s, _)) => s)
-    )
-  /* Enum helper functions. We are not writing as a continous
-     string because we need to keep the indentations */
-  ->Writer.writeNewLine
-  ->Writer.writeNewLine
-  ->Writer.write("let name_ = (_key: t): option(string) =>")
-  ->Writer.increaseIndent
-  ->Writer.writeNewLine
-  ->Writer.write("switch ([%bs.raw {| EnumTyp[_key] |}]) {")
-  ->Writer.writeNewLine
-  ->Writer.write("| Some(v) => Some(v)")
-  ->Writer.writeNewLine
-  ->Writer.write("| _ => None")
-  ->Writer.writeNewLine
-  ->Writer.write("};")
-  ->Writer.decreaseIndent
-  ->Writer.writeNewLine
-  ->Writer.writeNewLine
-  ->Writer.write("let fromName_ = (_name: string): option(t) =>")
-  ->Writer.increaseIndent
-  ->Writer.writeNewLine
-  ->Writer.write("switch ([%bs.raw {| EnumTyp[_name] |}]) {")
-  ->Writer.writeNewLine
-  ->Writer.write("| Some(v) => Some(v)")
-  ->Writer.writeNewLine
-  ->Writer.write("| _ => None")
-  ->Writer.writeNewLine
-  ->Writer.write("};")
-  ->Writer.decreaseIndent
-  ->Writer.writeEndModule
-  ->Writer.writeNewLine,
-  typeNames,
-  names,
-);
+    ) => {
+  let state =
+    state->Writer.writeBeginModuleFromType(node)->Writer.writeNewLine;
+
+  let (state, typeNames) =
+    state->createTypeAssignDeclaration(node, typeNames);
+
+  (
+    state
+    ->Writer.writeNewLine
+    ->(
+        state =>
+          node->TsNode.getEnumMembers
+          |> Array.fold_left(
+               ((state, keyNames), enum) => {
+                 let (name, keyNames) =
+                   enum->TsEnumMember.getName->createUniqueName(keyNames);
+                 (
+                   state
+                   ->Writer.writeNewLine
+                   ->Writer.write("let ")
+                   ->Writer.write(name)
+                   ->Writer.write(": t = [%bs.raw {| ")
+                   ->Writer.write(Utils.capitalize(node->TsNode.getName))
+                   ->Writer.write(".")
+                   ->Writer.write(enum->TsEnumMember.getName)
+                   ->Writer.write(" |}];"),
+                   keyNames,
+                 );
+               },
+               (state, ["name_", "fromName_"]),
+             )
+          |> (((s, _)) => s)
+      )
+    /* Enum helper functions. We are not writing as a continous
+       string because we need to keep the indentations */
+    ->Writer.writeNewLine
+    ->Writer.writeNewLine
+    ->Writer.write("let name_ = (_key: t): option(string) =>")
+    ->Writer.increaseIndent
+    ->Writer.writeNewLine
+    ->Writer.write("switch ([%bs.raw {| EnumTyp[_key] |}]) {")
+    ->Writer.writeNewLine
+    ->Writer.write("| Some(v) => Some(v)")
+    ->Writer.writeNewLine
+    ->Writer.write("| _ => None")
+    ->Writer.writeNewLine
+    ->Writer.write("};")
+    ->Writer.decreaseIndent
+    ->Writer.writeNewLine
+    ->Writer.writeNewLine
+    ->Writer.write("let fromName_ = (_name: string): option(t) =>")
+    ->Writer.increaseIndent
+    ->Writer.writeNewLine
+    ->Writer.write("switch ([%bs.raw {| EnumTyp[_name] |}]) {")
+    ->Writer.writeNewLine
+    ->Writer.write("| Some(v) => Some(v)")
+    ->Writer.writeNewLine
+    ->Writer.write("| _ => None")
+    ->Writer.writeNewLine
+    ->Writer.write("};")
+    ->Writer.decreaseIndent
+    ->Writer.writeEndModule
+    ->Writer.writeNewLine,
+    typeNames,
+    names,
+  );
+};
 
 let convertCodeToReason = (code: string, state: Writer.writerState) => {
   let types = TsApi.extractTypesFromCode(code);

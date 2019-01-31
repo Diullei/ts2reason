@@ -484,9 +484,10 @@ describe("Enum declaration - 001", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "
+           "type t_EnumTyp;
+
 module EnumTyp = {
-  type t;
+  type t = t_EnumTyp;
   
   let val1: t = [%bs.raw {| EnumTyp.Val1 |}];
   let val2: t = [%bs.raw {| EnumTyp.Val2 |}];
@@ -531,9 +532,10 @@ enum FileAccess {
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "
+           "type t_FileAccess;
+
 module FileAccess = {
-  type t;
+  type t = t_FileAccess;
   
   let none: t = [%bs.raw {| FileAccess.None |}];
   let read: t = [%bs.raw {| FileAccess.Read |}];
