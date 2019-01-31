@@ -1,23 +1,24 @@
 open TsApi;
 open Ts;
+open Writer;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
 let createTypeAssignDeclaration =
-    (state: Writer.writerState, node: TsNode.t, typeNames: list(string)) => {
+    (writer: writerState, node: TsNode.t, typeNames: list(string)) => {
   let name = "t_" ++ Utils.capitalize(node->TsNode.getName);
   (
-    state->Writer.write("type t = ")->Writer.write(name)->Writer.write(";"),
+    writer->write("type t = ")->write(name)->write(";"),
     [name, ...typeNames],
   );
 };
 
 let createTypeDeclaration =
-    (state: Writer.writerState, node: TsNode.t, types: array(TsNode.t)) =>
-  state
-  ->Writer.write("type t = ")
-  ->Writer.writeType(node->TsNode.getType, types)
-  ->Writer.write(";");
+    (writer: writerState, node: TsNode.t, types: array(TsNode.t)) =>
+  writer
+  ->write("type t = ")
+  ->writeType(node->TsNode.getType, types)
+  ->write(";");
 
 let createGetName = (node: TsNode.t, names: list(string)) =>
   ("get" ++ Utils.capitalize(node->TsNode.getName))
@@ -32,7 +33,7 @@ let createUniqueName = (name: string, names: list(string)) =>
 
 let createMemberGetFunction =
     (
-      state: Writer.writerState,
+      writer: writerState,
       node: TsNode.t,
       types: array(TsNode.t),
       names: list(string),
@@ -40,19 +41,19 @@ let createMemberGetFunction =
   let (name, names) = node->createGetName(names);
 
   (
-    state
-    ->Writer.write({j|[@bs.get] external $name: (t) => |j})
-    ->Writer.writeType(node->TsNode.getType, types)
-    ->Writer.write(" = \"")
-    ->Writer.write(node->TsNode.getName)
-    ->Writer.write("\";"),
+    writer
+    ->write({j|[@bs.get] external $name: (t) => |j})
+    ->writeType(node->TsNode.getType, types)
+    ->write(" = \"")
+    ->write(node->TsNode.getName)
+    ->write("\";"),
     names,
   );
 };
 
 let createMemberSetFunction =
     (
-      state: Writer.writerState,
+      writer: writerState,
       node: TsNode.t,
       types: array(TsNode.t),
       names: list(string),
@@ -60,34 +61,34 @@ let createMemberSetFunction =
   let (name, names) = node->createSetName(names);
 
   (
-    state
-    ->Writer.write({j|[@bs.send] external $name: (t, |j})
-    ->Writer.writeType(node->TsNode.getType, types)
-    ->Writer.write(") => ")
-    ->Writer.writeType(node->TsNode.getType, types)
-    ->Writer.write(" = \"")
-    ->Writer.write(node->TsNode.getName)
-    ->Writer.write("\";"),
+    writer
+    ->write({j|[@bs.send] external $name: (t, |j})
+    ->writeType(node->TsNode.getType, types)
+    ->write(") => ")
+    ->writeType(node->TsNode.getType, types)
+    ->write(" = \"")
+    ->write(node->TsNode.getName)
+    ->write("\";"),
     names,
   );
 };
 
 let createGetSetFunction =
     (
-      state: Writer.writerState,
+      writer: writerState,
       node: TsNode.t,
       types: array(TsNode.t),
       names: list(string),
     ) => {
-  let (state, names) = state->createMemberGetFunction(node, types, names);
-  let state = state->Writer.writeNewLine;
-  let (state, names) = state->createMemberSetFunction(node, types, names);
-  (state, names);
+  let (writer, names) = writer->createMemberGetFunction(node, types, names);
+  let writer = writer->writeNewLine;
+  let (writer, names) = writer->createMemberSetFunction(node, types, names);
+  (writer, names);
 };
 
 let convertTypeAliasDeclarationType =
     (
-      state: Writer.writerState,
+      writer: writerState,
       node: TsNode.t,
       types: array(TsNode.t),
       _names: list(string),
@@ -95,25 +96,25 @@ let convertTypeAliasDeclarationType =
     ) =>
   switch (node->TsNode.getType->TsType.getTypeKind) {
   | TypeKind.TypeLiteral =>
-    let (state, typeNames) =
-      state->createTypeAssignDeclaration(node, typeNames);
+    let (writer, typeNames) =
+      writer->createTypeAssignDeclaration(node, typeNames);
     (
-      state->(
-               state =>
-                 node->TsNode.getType->TsType.getMembers
-                 |> Array.fold_left(
-                      ((state, memberNames), member) =>
-                        state
-                        ->Writer.writeNewLine
-                        ->Writer.writeNewLine
-                        ->createGetSetFunction(member, types, memberNames),
-                      (state, []),
-                    )
-                 |> (((s, _)) => s)
-             ),
+      writer->(
+                writer =>
+                  node->TsNode.getType->TsType.getMembers
+                  |> Array.fold_left(
+                       ((writer, memberNames), member) =>
+                         writer
+                         ->writeNewLine
+                         ->writeNewLine
+                         ->createGetSetFunction(member, types, memberNames),
+                       (writer, []),
+                     )
+                  |> (((s, _)) => s)
+              ),
       typeNames,
     );
-  | _ => (state->createTypeDeclaration(node, types), typeNames)
+  | _ => (writer->createTypeDeclaration(node, types), typeNames)
   };
 
 let convertTypeAliasDeclaration =
@@ -121,15 +122,14 @@ let convertTypeAliasDeclaration =
       node: TsNode.t,
       types: array(TsNode.t),
       names: list(string),
-      state: Writer.writerState,
+      writer: writerState,
       typeNames: list(string),
     ) => {
-  let state =
-    state->Writer.writeBeginModuleFromType(node)->Writer.writeNewLine;
-  let (state, typeNames) =
-    state->convertTypeAliasDeclarationType(node, types, names, typeNames);
-  let state = state->Writer.writeEndModule->Writer.writeNewLine;
-  (state, typeNames, names);
+  let writer = writer->writeBeginModuleFromType(node)->writeNewLine;
+  let (writer, typeNames) =
+    writer->convertTypeAliasDeclarationType(node, types, names, typeNames);
+  let writer = writer->writeEndModule->writeNewLine;
+  (writer, typeNames, names);
 };
 
 let convertVariableDeclaration =
@@ -137,39 +137,39 @@ let convertVariableDeclaration =
       node: TsNode.t,
       types: array(TsNode.t),
       names: list(string),
-      state: Writer.writerState,
+      writer: writerState,
       typeNames: list(string),
     ) => {
   let (valName, names) = node->TsNode.getName->createUniqueName(names);
   let (setName, names) = node->createSetName(names);
   (
-    state
-    ->Writer.write("[@bs.val] external ")
-    ->Writer.write(valName)
-    ->Writer.write(": ")
-    ->Writer.writeType(node->TsNode.getType, types)
-    ->Writer.write(" = \"")
-    ->Writer.write(node->TsNode.getName)
-    ->Writer.write("\";")
-    ->Writer.writeNewLine
+    writer
+    ->write("[@bs.val] external ")
+    ->write(valName)
+    ->write(": ")
+    ->writeType(node->TsNode.getType, types)
+    ->write(" = \"")
+    ->write(node->TsNode.getName)
+    ->write("\";")
+    ->writeNewLine
     |> (
-      state =>
+      writer =>
         /* the set function will be generated if the
            declaration is not a 'const' declaration */
         if (!node->TsNode.isConst) {
-          state
-          ->Writer.write("let ")
-          ->Writer.write(setName)
-          ->Writer.write(" = (_value: ")
-          ->Writer.writeType(node->TsNode.getType, types)
-          ->Writer.write("): ")
-          ->Writer.writeType(node->TsNode.getType, types)
-          ->Writer.write(" => [%bs.raw {| ")
-          ->Writer.write(node->TsNode.getName)
-          ->Writer.write(" = _value |}];")
-          ->Writer.writeNewLine;
+          writer
+          ->write("let ")
+          ->write(setName)
+          ->write(" = (_value: ")
+          ->writeType(node->TsNode.getType, types)
+          ->write("): ")
+          ->writeType(node->TsNode.getType, types)
+          ->write(" => [%bs.raw {| ")
+          ->write(node->TsNode.getName)
+          ->write(" = _value |}];")
+          ->writeNewLine;
         } else {
-          state;
+          writer;
         }
     ),
     typeNames,
@@ -182,27 +182,24 @@ let convertFunctionDeclaration =
       node: TsNode.t,
       types: array(TsNode.t),
       names: list(string),
-      state: Writer.writerState,
+      writer: writerState,
       typeNames: list(string),
     ) => {
   let (name, names) = node->TsNode.getName->createUniqueName(names);
-  let state =
-    state
-    ->Writer.write("[@bs.send] external ")
-    ->Writer.write(name)
-    ->Writer.write(": ")
-    ->Writer.writeTypeArgumentsToFunctionDecl(
-        node->TsNode.getParameters,
-        types,
-      )
-    ->Writer.write(" => ")
-    ->Writer.writeType(node->TsNode.getType, types)
-    ->Writer.write(" = \"")
-    ->Writer.write(node->TsNode.getName)
-    ->Writer.write("\";")
-    ->Writer.writeNewLine;
+  let writer =
+    writer
+    ->write("[@bs.send] external ")
+    ->write(name)
+    ->write(": ")
+    ->writeTypeArgumentsToFunctionDecl(node->TsNode.getParameters, types)
+    ->write(" => ")
+    ->writeType(node->TsNode.getType, types)
+    ->write(" = \"")
+    ->write(node->TsNode.getName)
+    ->write("\";")
+    ->writeNewLine;
 
-  (state, typeNames, names);
+  (writer, typeNames, names);
 };
 
 let convertEnumDeclaration =
@@ -210,121 +207,123 @@ let convertEnumDeclaration =
       node: TsNode.t,
       _types: array(TsNode.t),
       names: list(string),
-      state: Writer.writerState,
+      writer: writerState,
       typeNames: list(string),
     ) => {
-  let state =
-    state->Writer.writeBeginModuleFromType(node)->Writer.writeNewLine;
+  let writer = writer->writeBeginModuleFromType(node)->writeNewLine;
 
-  let (state, typeNames) =
-    state->createTypeAssignDeclaration(node, typeNames);
+  let (writer, typeNames) =
+    writer->createTypeAssignDeclaration(node, typeNames);
 
   (
-    state
-    ->Writer.writeNewLine
+    writer
+    ->writeNewLine
     ->(
-        state =>
+        writer =>
           node->TsNode.getEnumMembers
           |> Array.fold_left(
-               ((state, keyNames), enum) => {
+               ((writer, keyNames), enum) => {
                  let (name, keyNames) =
                    enum->TsEnumMember.getName->createUniqueName(keyNames);
                  (
-                   state
-                   ->Writer.writeNewLine
-                   ->Writer.write("let ")
-                   ->Writer.write(name)
-                   ->Writer.write(": t = [%bs.raw {| ")
-                   ->Writer.write(Utils.capitalize(node->TsNode.getName))
-                   ->Writer.write(".")
-                   ->Writer.write(enum->TsEnumMember.getName)
-                   ->Writer.write(" |}];"),
+                   writer
+                   ->writeNewLine
+                   ->write("let ")
+                   ->write(name)
+                   ->write(": t = [%bs.raw {| ")
+                   ->write(Utils.capitalize(node->TsNode.getName))
+                   ->write(".")
+                   ->write(enum->TsEnumMember.getName)
+                   ->write(" |}];"),
                    keyNames,
                  );
                },
-               (state, ["name_", "fromName_"]),
+               (writer, ["name_", "fromName_"]),
              )
           |> (((s, _)) => s)
       )
     /* Enum helper functions. We are not writing as a continous
        string because we need to keep the indentations */
-    ->Writer.writeNewLine
-    ->Writer.writeNewLine
-    ->Writer.write("let name_ = (_key: t): option(string) =>")
-    ->Writer.increaseIndent
-    ->Writer.writeNewLine
-    ->Writer.write("switch ([%bs.raw {| EnumTyp[_key] |}]) {")
-    ->Writer.writeNewLine
-    ->Writer.write("| Some(v) => Some(v)")
-    ->Writer.writeNewLine
-    ->Writer.write("| _ => None")
-    ->Writer.writeNewLine
-    ->Writer.write("};")
-    ->Writer.decreaseIndent
-    ->Writer.writeNewLine
-    ->Writer.writeNewLine
-    ->Writer.write("let fromName_ = (_name: string): option(t) =>")
-    ->Writer.increaseIndent
-    ->Writer.writeNewLine
-    ->Writer.write("switch ([%bs.raw {| EnumTyp[_name] |}]) {")
-    ->Writer.writeNewLine
-    ->Writer.write("| Some(v) => Some(v)")
-    ->Writer.writeNewLine
-    ->Writer.write("| _ => None")
-    ->Writer.writeNewLine
-    ->Writer.write("};")
-    ->Writer.decreaseIndent
-    ->Writer.writeEndModule
-    ->Writer.writeNewLine,
+    ->writeNewLine
+    ->writeNewLine
+    ->write("let name_ = (_key: t): option(string) =>")
+    ->increaseIndent
+    ->writeNewLine
+    ->write("switch ([%bs.raw {| EnumTyp[_key] |}]) {")
+    ->writeNewLine
+    ->write("| Some(v) => Some(v)")
+    ->writeNewLine
+    ->write("| _ => None")
+    ->writeNewLine
+    ->write("};")
+    ->decreaseIndent
+    ->writeNewLine
+    ->writeNewLine
+    ->write("let fromName_ = (_name: string): option(t) =>")
+    ->increaseIndent
+    ->writeNewLine
+    ->write("switch ([%bs.raw {| EnumTyp[_name] |}]) {")
+    ->writeNewLine
+    ->write("| Some(v) => Some(v)")
+    ->writeNewLine
+    ->write("| _ => None")
+    ->writeNewLine
+    ->write("};")
+    ->decreaseIndent
+    ->writeEndModule
+    ->writeNewLine,
     typeNames,
     names,
   );
 };
 
-let convertCodeToReason = (code: string, state: Writer.writerState) => {
+let convertCodeToReason = (code: string, writer: writerState) => {
   let types = TsApi.extractTypesFromCode(code);
-  let (state, typeNames) =
+  let (writer, typeNames) =
     types
     |> Array.fold_left(
-         ((state, typeNames, names), node) =>
+         ((writer, typeNames, names), node) =>
            switch (node->TsNode.getKind) {
            | SyntaxKind.TypeAliasDeclaration =>
-             node->convertTypeAliasDeclaration(types, names, state, typeNames)
+             node->convertTypeAliasDeclaration(
+               types,
+               names,
+               writer,
+               typeNames,
+             )
 
            | SyntaxKind.VariableDeclaration =>
-             node->convertVariableDeclaration(types, names, state, typeNames)
+             node->convertVariableDeclaration(types, names, writer, typeNames)
 
            | SyntaxKind.FunctionDeclaration =>
-             node->convertFunctionDeclaration(types, names, state, typeNames)
+             node->convertFunctionDeclaration(types, names, writer, typeNames)
 
            | SyntaxKind.EnumDeclaration =>
-             node->convertEnumDeclaration(types, names, state, typeNames)
+             node->convertEnumDeclaration(types, names, writer, typeNames)
 
            | _ => (
-               state->Writer.write("/* ** !INVALID NODE! ** */"),
+               writer->write("/* ** !INVALID NODE! ** */"),
                typeNames,
                names,
              )
            },
-         (state, [], []),
+         (writer, [], []),
        )
-    |> (((state, typeNames, _)) => (state, typeNames));
+    |> (((writer, typeNames, _)) => (writer, typeNames));
 
-  let headerState =
-    Writer.make(
-      ~nl=state.nl,
+  let headerWriter =
+    make(
+      ~nl=writer.nl,
       ~code="",
-      ~currentIdentation=state.currentIdentation,
+      ~currentIdentation=writer.currentIdentation,
     );
 
-  let headerState =
+  let headerWriter =
     typeNames
     |> List.fold_left(
-         (headerState, typeName) =>
-           headerState
-           ->Writer.write({j|type $typeName;|j})
-           ->Writer.writeNewLine,
-         headerState,
+         (headerWriter, typeName) =>
+           headerWriter->write({j|type $typeName;|j})->writeNewLine,
+         headerWriter,
        );
-  headerState->Writer.getCode ++ state->Writer.getCode;
+  headerWriter->getCode ++ writer->getCode;
 };
