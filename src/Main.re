@@ -7,49 +7,85 @@ open Writer;
 let convertTypeAliasDeclaration =
     (
       node: TsNode.t,
-      types: array(TsNode.t),
-      names: list(string),
+      tsNodes: array(TsNode.t),
+      disambiguate: list(string),
       writer: writerState,
-      typeNames: list(string),
+      typeNamesToPutInTheHead: list(string),
     ) => {
-  let (writer, typeNames) =
+  let (writer, typeNamesToPutInTheHead, disambiguate) =
     switch (node->TsNode.getType->TsType.getTypeKind) {
     | TypeKind.TypeLiteral =>
-      node->createLiteralType(types, names, writer, typeNames)
-
-    | _ => (
-        writer
-        ->writeBeginModuleFromType(node)
-        ->writeNewLine
-        ->write("type t = ")
-        ->writeType(node->TsNode.getType, types)
-        ->write(";")
-        ->writeEndModule
-        ->writeNewLine,
-        typeNames,
+      createLiteralType(
+        node->TsNode.getName,
+        node->TsNode.getType,
+        tsNodes,
+        disambiguate,
+        writer,
+        typeNamesToPutInTheHead,
+        true,
       )
+
+    | _ =>
+      let (typeStr, disambiguate, complementWriter) =
+        writer->buildType(
+          node->TsNode.getName,
+          node->TsNode.getType,
+          tsNodes,
+          disambiguate,
+          setupWriterAs(writer),
+        );
+
+      (
+        writer
+        ->writeIf(complementWriter->hasContent, complementWriter->getCode, "")
+        ->write("module ")
+        ->writeModuleName([|node->TsNode.getName|])
+        ->write(" = {")
+        ->increaseIndent
+        ->writeNewLine
+        ->write({j|type t = $typeStr;|j})
+        ->decreaseIndent
+        ->writeNewLine
+        ->write("}")
+        ->writeNewLine,
+        typeNamesToPutInTheHead,
+        disambiguate,
+      );
     };
 
-  (writer, typeNames, names);
+  (writer, typeNamesToPutInTheHead, disambiguate);
 };
 
 let convertVariableDeclaration =
     (
       node: TsNode.t,
-      types: array(TsNode.t),
-      names: list(string),
+      tsNodes: array(TsNode.t),
+      disambiguate: list(string),
       writer: writerState,
-      typeNames: list(string),
+      typeNamesToPutInTheHead: list(string),
     ) => {
-  let (valName, names) = node->TsNode.getName->createUniqueName(names);
-  let (setName, names) = node->createSetName(names);
+  let (valName, disambiguate) =
+    node->TsNode.getName->createUniqueName(disambiguate);
+  let (setName, disambiguate) = node->createSetName(disambiguate);
+  let (typeStr, disambiguate, complementWriter) =
+    writer->buildType(
+      node->TsNode.getName,
+      node->TsNode.getType,
+      tsNodes,
+      disambiguate,
+      setupWriterAs(writer),
+    );
+
   (
     writer
+    ->writeIf(
+        complementWriter->hasContent,
+        complementWriter->writeNewLine->getCode,
+        "",
+      )
     ->write("[@bs.val] external ")
     ->write(valName)
-    ->write(": ")
-    ->writeType(node->TsNode.getType, types)
-    ->write(" = \"")
+    ->write({j|: $typeStr = "|j})
     ->write(node->TsNode.getName)
     ->write("\";")
     ->writeNewLine
@@ -61,11 +97,7 @@ let convertVariableDeclaration =
           writer
           ->write("let ")
           ->write(setName)
-          ->write(" = (_value: ")
-          ->writeType(node->TsNode.getType, types)
-          ->write("): ")
-          ->writeType(node->TsNode.getType, types)
-          ->write(" => [%bs.raw {| ")
+          ->write({j| = (_value: $typeStr): $typeStr => [%bs.raw {| |j})
           ->write(node->TsNode.getName)
           ->write(" = _value |}];")
           ->writeNewLine;
@@ -73,48 +105,73 @@ let convertVariableDeclaration =
           writer;
         }
     ),
-    typeNames,
-    names,
+    typeNamesToPutInTheHead,
+    disambiguate,
   );
 };
 
 let convertFunctionDeclaration =
     (
       node: TsNode.t,
-      types: array(TsNode.t),
-      names: list(string),
+      tsNodes: array(TsNode.t),
+      disambiguate: list(string),
       writer: writerState,
-      typeNames: list(string),
+      typeNamesToPutInTheHead: list(string),
     ) => {
-  let (name, names) = node->TsNode.getName->createUniqueName(names);
+  let (name, disambiguate) =
+    node->TsNode.getName->createUniqueName(disambiguate);
+  let (pars, disambiguate, complementWriter) =
+    writer->writeTypeArgumentsToFunctionDecl(
+      node->TsNode.getParameters,
+      tsNodes,
+      setupWriterAs(writer),
+      disambiguate,
+    );
+  let (typeStr, disambiguate, complementWriter) =
+    writer->buildType(
+      node->TsNode.getName,
+      node->TsNode.getType,
+      tsNodes,
+      disambiguate,
+      complementWriter,
+    );
+
   let writer =
     writer
+    ->writeIf(complementWriter->hasContent, complementWriter->getCode, "")
     ->write("[@bs.send] external ")
     ->write(name)
     ->write(": ")
-    ->writeTypeArgumentsToFunctionDecl(node->TsNode.getParameters, types)
-    ->write(" => ")
-    ->writeType(node->TsNode.getType, types)
-    ->write(" = \"")
+    ->write(pars->getCode)
+    ->write({j| => $typeStr = "|j})
     ->write(node->TsNode.getName)
     ->write("\";")
     ->writeNewLine;
 
-  (writer, typeNames, names);
+  (writer, typeNamesToPutInTheHead, disambiguate);
 };
 
 let convertEnumDeclaration =
     (
       node: TsNode.t,
-      _types: array(TsNode.t),
-      names: list(string),
+      tsNodes: array(TsNode.t),
+      disambiguate: list(string),
       writer: writerState,
-      typeNames: list(string),
+      typeNamesToPutInTheHead: list(string),
     ) => {
-  let writer = writer->writeBeginModuleFromType(node)->writeNewLine;
+  let writer =
+    writer
+    ->write("module ")
+    ->writeModuleName([|node->TsNode.getName|])
+    ->write(" = {")
+    ->increaseIndent
+    ->writeNewLine;
 
-  let (writer, typeNames) =
-    writer->createTypeAssignDeclaration(node, typeNames);
+  let name = "t_" ++ Utils.capitalize(node->TsNode.getName);
+  let (writer, typeNamesToPutInTheHead) = (
+    writer->write("type t = ")->write(name)->write(";"),
+    [name, ...typeNamesToPutInTheHead],
+  );
 
   (
     writer
@@ -171,60 +228,88 @@ let convertEnumDeclaration =
     ->writeNewLine
     ->write("};")
     ->decreaseIndent
-    ->writeEndModule
+    ->decreaseIndent
+    ->writeNewLine
+    ->write("}")
     ->writeNewLine,
-    typeNames,
-    names,
+    typeNamesToPutInTheHead,
+    disambiguate,
   );
 };
 
 let convertCodeToReason = (code: string, writer: writerState) => {
-  let types = TsApi.extractTypesFromCode(code);
-  let (writer, typeNames) =
-    types
+  let tsNodes = TsApi.extractTypesFromCode(code);
+  let (writer, typeNamesToPutInTheHead) =
+    tsNodes
     |> Array.fold_left(
-         ((writer, typeNames, names), node) =>
-           switch (node->TsNode.getKind) {
-           | SyntaxKind.TypeAliasDeclaration =>
-             node->convertTypeAliasDeclaration(
-               types,
-               names,
-               writer,
-               typeNames,
-             )
+         ((writer, typeNamesToPutInTheHead, disambiguate), node) => {
+           let (writer, typeNamesToPutInTheHead, disambiguate) =
+             switch (node->TsNode.getKind) {
+             | SyntaxKind.TypeAliasDeclaration =>
+               node->convertTypeAliasDeclaration(
+                 tsNodes,
+                 disambiguate,
+                 writer,
+                 typeNamesToPutInTheHead,
+               )
 
-           | SyntaxKind.VariableDeclaration =>
-             node->convertVariableDeclaration(types, names, writer, typeNames)
+             | SyntaxKind.VariableDeclaration =>
+               node->convertVariableDeclaration(
+                 tsNodes,
+                 disambiguate,
+                 writer,
+                 typeNamesToPutInTheHead,
+               )
 
-           | SyntaxKind.FunctionDeclaration =>
-             node->convertFunctionDeclaration(types, names, writer, typeNames)
+             | SyntaxKind.FunctionDeclaration =>
+               node->convertFunctionDeclaration(
+                 tsNodes,
+                 disambiguate,
+                 writer,
+                 typeNamesToPutInTheHead,
+               )
 
-           | SyntaxKind.EnumDeclaration =>
-             node->convertEnumDeclaration(types, names, writer, typeNames)
+             | SyntaxKind.EnumDeclaration =>
+               node->convertEnumDeclaration(
+                 tsNodes,
+                 disambiguate,
+                 writer,
+                 typeNamesToPutInTheHead,
+               )
 
-           | _ => (
-               writer->write("/* ** !INVALID NODE! ** */"),
-               typeNames,
-               names,
-             )
-           },
+             | _ => (
+                 writer->write("/* ** !INVALID NODE! ** */"),
+                 typeNamesToPutInTheHead,
+                 disambiguate,
+               )
+             };
+           (writer->writeNewLine, typeNamesToPutInTheHead, disambiguate);
+         },
          (writer, [], []),
        )
-    |> (((writer, typeNames, _)) => (writer, typeNames));
-
-  let headerWriter =
-    make(
-      ~nl=writer.nl,
-      ~code="",
-      ~currentIdentation=writer.currentIdentation,
+    |> (
+      ((writer, typeNamesToPutInTheHead, _)) => (
+        writer,
+        typeNamesToPutInTheHead,
+      )
     );
 
+  let headerWriter = setupWriterAs(writer);
+
   let headerWriter =
-    typeNames
+    typeNamesToPutInTheHead
     |> List.fold_left(
          (headerWriter, typeName) =>
            headerWriter->write({j|type $typeName;|j})->writeNewLine,
          headerWriter,
        );
-  headerWriter->getCode ++ writer->getCode;
+
+  (
+    if (headerWriter->hasContent) {
+      headerWriter->writeNewLine->getCode;
+    } else {
+      "";
+    }
+  )
+  ++ writer->getCode;
 };

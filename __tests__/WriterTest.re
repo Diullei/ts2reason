@@ -149,13 +149,18 @@ describe("Writer", () => {
           "t_MyObj",
         ),
       ],
-      ((fakeObj, types, output)) =>
-      expect(
-        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-        ->Writer.writeType(fakeObj, types)
-        ->Writer.getCode,
-      )
-      |> toEqual(output)
+      ((fakeObj, types, output)) => {
+        let (strVal, _, _) =
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          ->Writer.buildType(
+              "aaa",
+              fakeObj,
+              types,
+              [],
+              Writer.make(~nl=eol, ~code="", ~currentIdentation=0),
+            );
+        expect(strVal) |> toEqual(output);
+      },
     )
   );
 
@@ -173,61 +178,7 @@ describe("Writer", () => {
 
   Expect.(
     testAll(
-      "writeParameterName",
-      [
-        ("type", true, "_type"),
-        ("type", false, "type_"),
-        ("name", false, "name"),
-      ],
-      ((name, startWithUnderline, output)) =>
-      expect(
-        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-        ->Writer.writeParameterName(name, startWithUnderline)
-        ->Writer.getCode,
-      )
-      |> toEqual(output)
-    )
-  );
-
-  Expect.(
-    test("writeParameter", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeParameter(makeFakeTsParDec("param", "number"), [||])
-        ->Writer.getCode,
-      )
-      |> toEqual("_param: float");
-    })
-  );
-
-  Expect.(
-    testAll(
-      "writeArgumentsToMethodDecl",
-      [
-        ([||], "(_inst: t)"),
-        (
-          [|
-            makeFakeTsParDec("param01", "number"),
-            makeFakeTsParDec("param02", "boolean"),
-            makeFakeTsParDec("param03", "string"),
-          |],
-          "(_inst: t, _param01: float, _param02: bool, _param03: string)",
-        ),
-      ],
-      ((parList, output)) =>
-      expect(
-        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-        ->Writer.writeArgumentsToMethodDecl(parList, [||])
-        ->Writer.getCode,
-      )
-      |> toEqual(output)
-    )
-  );
-
-  Expect.(
-    testAll(
-      "writeArgumentsToFunctionDecl",
+      "writeTypeArgumentsToFunctionDecl",
       [
         ([||], "()"),
         (
@@ -236,59 +187,22 @@ describe("Writer", () => {
             makeFakeTsParDec("param02", "boolean"),
             makeFakeTsParDec("param03", "string"),
           |],
-          "(_param01: float, _param02: bool, _param03: string)",
+          "(float, bool, string)",
         ),
       ],
-      ((parList, output)) =>
-      expect(
-        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-        ->Writer.writeArgumentsToFunctionDecl(parList, [||])
-        ->Writer.getCode,
-      )
-      |> toEqual(output)
-    )
-  );
-
-  Expect.(
-    testAll(
-      "writeArgumentsToFunctionCall",
-      [
-        ([||], "()"),
-        (
-          [|
-            makeFakeTsParDec("param01", "number"),
-            makeFakeTsParDec("param02", "boolean"),
-            makeFakeTsParDec("param03", "string"),
-          |],
-          "(_param01, _param02, _param03)",
-        ),
-      ],
-      ((parList, output)) =>
-      expect(
-        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
-        ->Writer.writeArgumentsToFunctionCall(parList)
-        ->Writer.getCode,
-      )
-      |> toEqual(output)
-    )
-  );
-
-  Expect.(
-    test("writeModuleNameFrom", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeModuleNameFrom(
-            makeFakeTsNode(
+      ((parList, output)) => {
+        let (writer, _, _) =
+          Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+          ->Writer.writeTypeArgumentsToFunctionDecl(
+              parList,
               [||],
-              "'myModule'",
-              SyntaxKind.InterfaceDeclaration,
-            ),
-          )
-        ->Writer.getCode,
-      )
-      |> toEqual("MyModule");
-    })
+              Writer.make(~nl=eol, ~code="", ~currentIdentation=0),
+              [],
+            );
+
+        expect(writer->Writer.getCode) |> toEqual(output);
+      },
+    )
   );
 
   Expect.(
@@ -304,127 +218,17 @@ describe("Writer", () => {
   );
 
   Expect.(
-    test("writeGetPropertyDecl", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeGetPropertyDecl(
-            makeFakeTsNode([||], "propName", SyntaxKind.PropertyDeclaration),
-            [||],
-            [],
-          )
-        ->(((s, _)) => s)
-        ->Writer.getCode,
-      )
-      |> toEqual(
-           "let getPropName = (_inst: t): string => [%bs.raw {| _inst.propName |}];",
-         );
-    })
-  );
-
-  Expect.(
-    test("writeSetPropertyDecl", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeSetPropertyDecl(
-            makeFakeTsNode([||], "propName", SyntaxKind.PropertyDeclaration),
-            [||],
-            [],
-          )
-        ->(((s, _)) => s)
-        ->Writer.getCode,
-      )
-      |> toEqual(
-           "let setPropName = (_inst: t, _value: string): unit => [%bs.raw {| _inst.propName = _value |}];",
-         );
-    })
-  );
-
-  Expect.(
-    test("writeMethodDecl", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeMethodDecl(
-            makeFakeTsNode([||], "myFunc", SyntaxKind.MethodDeclaration),
-            [||],
-            [],
-          )
-        ->(((s, _)) => s)
-        ->Writer.getCode,
-      )
-      |> toEqual(
-           "let myFunc = (_inst: t, _arg01: string, _arg02: float, _arg03: bool): string => [%bs.raw {| _inst.myFunc(_arg01, _arg02, _arg03) |}];",
-         );
-    })
-  );
-
-  Expect.(
-    test("writeFunctionDecl", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeFunctionDecl(
-            makeFakeTsNode([||], "myFunc", SyntaxKind.FunctionDeclaration),
-            [||],
-            [|"myModule"|],
-            [],
-          )
-        ->(((s, _)) => s)
-        ->Writer.getCode,
-      )
-      |> toEqual(
-           "[@bs.module \"myModule\"] external myFunc: (_arg01: string, _arg02: float, _arg03: bool) => string = \"myFunc\"",
-         );
-    })
-  );
-
-  Expect.(
-    test("writeVariableDecl", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeVariableDecl(
-            makeFakeTsNode([||], "myVar", SyntaxKind.VariableDeclaration),
-            [||],
-            [|"myModule"|],
-            [],
-          )
-        ->(((s, _)) => s)
-        ->Writer.getCode,
-      )
-      |> toEqual(
-           "[@bs.module \"myModule\"] external myVar: string = \"myVar\"",
-         );
-    })
-  );
-
-  Expect.(
     test("writeBeginModuleFromNs", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
       expect(
         wState
         ->Writer.writeBeginModuleFromNs([|"aaa", "bbb", "ccc"|])
-        ->Writer.writeEndModule
+        ->Writer.decreaseIndent
+        ->Writer.writeNewLine
+        ->Writer.write("}")
         ->Writer.getCode,
       )
       |> toEqual("\nmodule Ccc = {\n}");
-    })
-  );
-
-  Expect.(
-    test("writeBeginModuleFromType", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeBeginModuleFromType(
-            makeFakeTsNode([||], "myClass", SyntaxKind.ClassDeclaration),
-          )
-        ->Writer.writeEndModule
-        ->Writer.getCode,
-      )
-      |> toEqual("\nmodule MyClass = {\n}");
     })
   );
 

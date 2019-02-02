@@ -10,10 +10,10 @@ describe("Type alias declaration binding a predefined type :: string", () =>
         |> Main.convertCodeToReason("type Typ = string")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module Typ = {
+      |> toEqual("module Typ = {
   type t = string;
 }
+
 ")
     )
   )
@@ -27,10 +27,10 @@ describe("Type alias declaration binding a predefined type :: boolean", () =>
         |> Main.convertCodeToReason("type MyBoolType = boolean")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyBoolType = {
+      |> toEqual("module MyBoolType = {
   type t = bool;
 }
+
 ")
     )
   )
@@ -44,10 +44,10 @@ describe("Type alias declaration binding a predefined type :: any", () =>
         |> Main.convertCodeToReason("type myObjType = any")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyObjType = {
+      |> toEqual("module MyObjType = {
   type t = 'any;
 }
+
 ")
     )
   )
@@ -61,10 +61,10 @@ describe("Type alias declaration binding a predefined type :: unknown", () =>
         |> Main.convertCodeToReason("type myObjType = unknown")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyObjType = {
+      |> toEqual("module MyObjType = {
   type t = 'unknown;
 }
+
 ")
     )
   )
@@ -78,10 +78,10 @@ describe("Type alias declaration binding a predefined type :: void", () =>
         |> Main.convertCodeToReason("type myObjType = void")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyObjType = {
+      |> toEqual("module MyObjType = {
   type t = unit;
 }
+
 ")
     )
   )
@@ -95,10 +95,10 @@ describe("Type alias declaration binding a predefined type :: number", () =>
         |> Main.convertCodeToReason("type MyType = number;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = float;
 }
+
 ")
     )
   )
@@ -120,14 +120,14 @@ type MyType = number;
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "
-module MyBoolType = {
+           "module MyBoolType = {
   type t = bool;
 }
 
 module MyType = {
   type t = float;
 }
+
 ",
          )
     )
@@ -142,10 +142,10 @@ describe("Type alias declaration binding a predefined type :: null", () =>
         |> Main.convertCodeToReason("type MyType = null;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = Js.Types.null_val;
 }
+
 ")
     )
   )
@@ -159,10 +159,10 @@ describe("Type alias declaration binding a predefined type :: undefined", () =>
         |> Main.convertCodeToReason("type MyType = undefined;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = Js.Types.undefined_val;
 }
+
 ")
     )
   )
@@ -176,10 +176,10 @@ describe("Type alias declaration binding a predefined type :: object", () =>
         |> Main.convertCodeToReason("type MyType = object;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = Js.Types.obj_val;
 }
+
 ")
     )
   )
@@ -193,10 +193,10 @@ describe("Type alias declaration binding a predefined type :: symbol", () =>
         |> Main.convertCodeToReason("type MyType = symbol;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = Js.Types.symbol;
 }
+
 ")
     )
   )
@@ -210,10 +210,10 @@ describe("Type alias declaration binding a predefined type :: bigint", () =>
         |> Main.convertCodeToReason("type MyType = bigint;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = Int64.t;
 }
+
 ")
     )
   )
@@ -227,10 +227,10 @@ describe("Type alias declaration binding a predefined type :: void", () =>
         |> Main.convertCodeToReason("type MyType = void;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = unit;
 }
+
 ")
     )
   )
@@ -244,10 +244,10 @@ describe("Type alias declaration binding an array type :: string[]", () =>
         |> Main.convertCodeToReason("type MyType = string[];")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = Js.Array.t(string);
 }
+
 ")
     )
   )
@@ -262,10 +262,10 @@ describe("Type alias declaration binding an array type :: string[][]", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "
-module MyType = {
+           "module MyType = {
   type t = Js.Array.t(Js.Array.t(string));
 }
+
 ",
          )
     )
@@ -281,10 +281,10 @@ describe("Type alias declaration binding an array type :: number[][][]", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "
-module MyType = {
+           "module MyType = {
   type t = Js.Array.t(Js.Array.t(Js.Array.t(float)));
 }
+
 ",
          )
     )
@@ -303,10 +303,10 @@ describe(
            )
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = (string, float, bool);
 }
+
 ")
     )
   )
@@ -325,10 +325,10 @@ describe(
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "
-module MyType = {
+           "module MyType = {
   type t = (string, Js.Array.t(float), bool);
 }
+
 ",
          )
     )
@@ -346,6 +346,7 @@ describe("Variable declaration binding a simple type :: string", () =>
       |> toEqual(
            "[@bs.val] external a: float = \"a\";
 let setA = (_value: float): float => [%bs.raw {| a = _value |}];
+
 ",
          )
     )
@@ -363,6 +364,7 @@ describe("Variable declaration with no type", () =>
       |> toEqual(
            "[@bs.val] external value: 'any = \"value\";
 let setValue = (_value: 'any): 'any => [%bs.raw {| value = _value |}];
+
 ",
          )
     )
@@ -380,6 +382,7 @@ describe("Variable declaration binding a simple type :: (let) string", () =>
       |> toEqual(
            "[@bs.val] external a: float = \"a\";
 let setA = (_value: float): float => [%bs.raw {| a = _value |}];
+
 ",
          )
     )
@@ -395,6 +398,7 @@ describe("Variable declaration binding a simple type :: (const) string", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual("[@bs.val] external a: float = \"a\";
+
 ")
     )
   )
@@ -411,10 +415,13 @@ describe("Variable declaration list - simple type", () =>
       |> toEqual(
            "[@bs.val] external a: bool = \"a\";
 let setA = (_value: bool): bool => [%bs.raw {| a = _value |}];
+
 [@bs.val] external b: 'any = \"b\";
 let setB = (_value: 'any): 'any => [%bs.raw {| b = _value |}];
+
 [@bs.val] external c: float = \"c\";
 let setC = (_value: float): float => [%bs.raw {| c = _value |}];
+
 ",
          )
     )
@@ -432,6 +439,7 @@ describe("Function declaration - 001", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual("[@bs.send] external greet: (string) => unit = \"greet\";
+
 ")
     )
   )
@@ -449,6 +457,7 @@ describe("Function declaration - 002", () =>
       )
       |> toEqual(
            "[@bs.send] external myFunc: (string, bool) => float = \"myFunc\";
+
 ",
          )
     )
@@ -467,6 +476,7 @@ describe("Function declaration - 003", () =>
       )
       |> toEqual(
            "[@bs.send] external myFunc: (string, bool) => 'any = \"myFunc\";
+
 ",
          )
     )
@@ -505,6 +515,7 @@ module EnumTyp = {
     | _ => None
     };
 }
+
 ",
          )
     )
@@ -555,6 +566,7 @@ module FileAccess = {
     | _ => None
     };
 }
+
 ",
          )
     )
@@ -569,10 +581,10 @@ describe("ParenthesizedType type :: (number)", () =>
         |> Main.convertCodeToReason("type MyType = (number);")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = float;
 }
+
 ")
     )
   )
@@ -586,10 +598,10 @@ describe("ParenthesizedType type :: (((number)))", () =>
         |> Main.convertCodeToReason("type MyType = (((number)));")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("
-module MyType = {
+      |> toEqual("module MyType = {
   type t = float;
 }
+
 ")
     )
   )
@@ -617,6 +629,7 @@ module MyType = {
   [@bs.get] external getProp2: (t) => float = \"prop2\";
   [@bs.send] external setProp2: (t, float) => float = \"prop2\";
 }
+
 ",
          )
     )
@@ -658,6 +671,7 @@ module MyType2 = {
   [@bs.get] external getProp2: (t) => float = \"prop2\";
   [@bs.send] external setProp2: (t, float) => float = \"prop2\";
 }
+
 ",
          )
     )
@@ -695,6 +709,59 @@ module GreetingSettings = {
   [@bs.get] external getColor: (t) => string = \"color\";
   [@bs.send] external setColor: (t, string) => string = \"color\";
 }
+
+",
+         )
+    )
+  )
+);
+
+describe("Var declaration binding a literal type - 001", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+            "
+            const myVar: {
+              greeting: string;
+              duration: {
+                name: string;
+                isValid: boolean;
+              };
+              color: string;
+            };
+            ",
+           )
+        |> Utils.checkReasonCode
+        ,
+      )
+      |> toEqual(
+           "module MyVar = {
+  type t;
+  
+  [@bs.get] external getGreeting: (t) => string = \"greeting\";
+  [@bs.send] external setGreeting: (t, string) => string = \"greeting\";
+  
+  module Duration = {
+    type t;
+    
+    [@bs.get] external getName: (t) => string = \"name\";
+    [@bs.send] external setName: (t, string) => string = \"name\";
+    
+    [@bs.get] external getIsValid: (t) => bool = \"isValid\";
+    [@bs.send] external setIsValid: (t, bool) => bool = \"isValid\";
+  }
+  
+  [@bs.get] external getDuration: (t) => Duration.t = \"duration\";
+  [@bs.send] external setDuration: (t, Duration.t) => Duration.t = \"duration\";
+  
+  [@bs.get] external getColor: (t) => string = \"color\";
+  [@bs.send] external setColor: (t, string) => string = \"color\";
+}
+
+[@bs.val] external myVar: MyVar.t = \"myVar\";
+
 ",
          )
     )
