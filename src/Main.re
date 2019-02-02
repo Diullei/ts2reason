@@ -154,7 +154,6 @@ let convertFunctionDeclaration =
 let convertEnumDeclaration =
     (
       node: TsNode.t,
-      tsNodes: array(TsNode.t),
       disambiguate: list(string),
       writer: writerState,
       typeNamesToPutInTheHead: list(string),
@@ -271,7 +270,6 @@ let convertCodeToReason = (code: string, writer: writerState) => {
 
              | SyntaxKind.EnumDeclaration =>
                node->convertEnumDeclaration(
-                 tsNodes,
                  disambiguate,
                  writer,
                  typeNamesToPutInTheHead,
