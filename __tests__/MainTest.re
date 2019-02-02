@@ -767,3 +767,38 @@ describe("Var declaration binding a literal type - 001", () =>
     )
   )
 );
+
+describe("Var declaration binding a literal type - 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+            "
+            declare const myVar: {
+                name: string;
+                isValid: boolean;
+            }[];
+            ",
+           )
+        |> Utils.checkReasonCode
+        ,
+      )
+      |> toEqual(
+           "module MyVar = {
+  type t;
+  
+  [@bs.get] external getName: (t) => string = \"name\";
+  [@bs.send] external setName: (t, string) => string = \"name\";
+  
+  [@bs.get] external getIsValid: (t) => bool = \"isValid\";
+  [@bs.send] external setIsValid: (t, bool) => bool = \"isValid\";
+}
+
+[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+
+",
+         )
+    )
+  )
+);
