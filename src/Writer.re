@@ -335,10 +335,25 @@ and createLiteralType =
                 tsType->TsType.getMembers
                 |> Array.fold_left(
                      ((writer, disambiguate), member) =>
-                       writer
-                       ->writeNewLine
-                       ->writeNewLine
-                       ->createGetSetFunction(member, tsNodes, disambiguate),
+                       switch (member->TsNode.getKind) {
+                       | Ts.SyntaxKind.PropertySignature =>
+                         writer
+                         ->writeNewLine
+                         ->writeNewLine
+                         ->createGetSetFunction(member, tsNodes, disambiguate)
+
+                       | Ts.SyntaxKind.MethodSignature =>
+                         writer
+                         ->writeNewLine
+                         ->writeNewLine
+                         ->writeFunctionDeclaration(
+                             member,
+                             tsNodes,
+                             disambiguate,
+                           )
+
+                       | _ => (writer, disambiguate)
+                       },
                      (writer, disambiguate),
                    )
                 |> (((s, _)) => s)
@@ -348,9 +363,48 @@ and createLiteralType =
 
   let writer = writer->decreaseIndent->writeNewLine->write("}")->writeNewLine;
   (writer, typeNamesToPutInTheHead, normalizedName, disambiguate);
-};
+}
+and writeFunctionDeclaration =
+    (
+      writer: writerState,
+      node: TsNode.t,
+      tsNodes: array(TsNode.t),
+      disambiguate: list(string),
+    ) => {
+  let (name, disambiguate) =
+    node->TsNode.getName->createUniqueName(disambiguate);
+  let (parsWriter, disambiguate, complementWriter) =
+    writeTypeArgumentsToFunctionDecl(
+      setupWriterAs(writer),
+      node->TsNode.getParameters,
+      tsNodes,
+      setupWriterAs(writer),
+      disambiguate,
+    );
+  let (typeStr, disambiguate, complementWriter) =
+    writer->buildType(
+      node->TsNode.getName,
+      node->TsNode.getType,
+      tsNodes,
+      disambiguate,
+      complementWriter,
+    );
 
-let writeTypeArgumentsToFunctionDecl =
+  let writer =
+    writer
+    ->writeIf(complementWriter->hasContent, complementWriter->getCode, "")
+    ->write("[@bs.send] external ")
+    ->write(name)
+    ->write(": ")
+    ->write(parsWriter->getCode)
+    ->write({j| => $typeStr = "|j})
+    ->write(node->TsNode.getName)
+    ->write("\";")
+    ->writeNewLine;
+
+  (writer, disambiguate);
+}
+and writeTypeArgumentsToFunctionDecl =
     (
       writer: writerState,
       pars: array(TsParameter.t),

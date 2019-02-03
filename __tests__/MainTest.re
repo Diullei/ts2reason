@@ -848,3 +848,39 @@ let setMyVar = (_value: Js.Array.t(MyVar.t)): Js.Array.t(MyVar.t) => [%bs.raw {|
     )
   )
 );
+
+describe("Var declaration binding a literal type - 004", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+            "
+            declare let myVar: {
+                name: string[];
+                greet(greeting: string): void;
+            }[];
+            ",
+           )
+        |> Utils.checkReasonCode
+        ,
+      )
+      |> toEqual(
+           "module MyVar = {
+  type t;
+  
+  [@bs.get] external getName: (t) => Js.Array.t(string) = \"name\";
+  [@bs.send] external setName: (t, Js.Array.t(string)) => Js.Array.t(string) = \"name\";
+  
+  [@bs.send] external greet: (string) => unit = \"greet\";
+  
+}
+
+[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+let setMyVar = (_value: Js.Array.t(MyVar.t)): Js.Array.t(MyVar.t) => [%bs.raw {| myVar = _value |}];
+
+",
+         )
+    )
+  )
+);

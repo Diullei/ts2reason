@@ -133,36 +133,8 @@ let convertFunctionDeclaration =
       writer: writerState,
       typeNamesToPutInTheHead: list(string),
     ) => {
-  let (name, disambiguate) =
-    node->TsNode.getName->createUniqueName(disambiguate);
-  let (pars, disambiguate, complementWriter) =
-    writer->writeTypeArgumentsToFunctionDecl(
-      node->TsNode.getParameters,
-      tsNodes,
-      setupWriterAs(writer),
-      disambiguate,
-    );
-  let (typeStr, disambiguate, complementWriter) =
-    writer->buildType(
-      node->TsNode.getName,
-      node->TsNode.getType,
-      tsNodes,
-      disambiguate,
-      complementWriter,
-    );
-
-  let writer =
-    writer
-    ->writeIf(complementWriter->hasContent, complementWriter->getCode, "")
-    ->write("[@bs.send] external ")
-    ->write(name)
-    ->write(": ")
-    ->write(pars->getCode)
-    ->write({j| => $typeStr = "|j})
-    ->write(node->TsNode.getName)
-    ->write("\";")
-    ->writeNewLine;
-
+  let (writer, disambiguate) =
+    writer->writeFunctionDeclaration(node, tsNodes, disambiguate);
   (writer, typeNamesToPutInTheHead, disambiguate);
 };
 

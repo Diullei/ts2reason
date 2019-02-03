@@ -214,4 +214,20 @@ describe("Inspect a `type alias` declaration", () => {
       |> toEqual([|"myVar"|])
     )
   );
+
+  let node = extractTypesFromCode(
+               "
+            declare let myVar: {
+                name: string[];
+                greet(greeting: string): void;
+            };
+            ",
+             )[0];
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral method name", () =>
+      expect(node->TsNode.getType->TsType.getMembers[1]->TsNode.getName)
+      |> toEqual("greet")
+    )
+  );
 });

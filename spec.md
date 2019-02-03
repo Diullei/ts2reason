@@ -121,6 +121,56 @@ This section contains the specification of the conversions that should be applie
  [    ] |     ConstructSignature
  [    ] |     IndexSignature
  [    ] |     MethodSignature
+        |
+ [    ] | ParameterList:
+ [    ] |     RequiredParameterList
+ [    ] |     OptionalParameterList
+ [    ] |     RestParameter
+ [    ] |     RequiredParameterList ',' OptionalParameterList
+ [    ] |     RequiredParameterList ',' RestParameter
+ [    ] |     OptionalParameterList ',' RestParameter
+ [    ] |     RequiredParameterList ',' OptionalParameterList ',' RestParameter
+        |
+ [    ] | RequiredParameterList:
+ [    ] |     RequiredParameter
+ [    ] |     RequiredParameterList ',' RequiredParameter
+        |
+ [    ] | RequiredParameter:
+ [    ] |     AccessibilityModifier ? BindingIdentifierOrPattern TypeAnnotation ?
+ [    ] |     BindingIdentifier ':' StringLiteral
+        |
+ [    ] | AccessibilityModifier:
+ [    ] |     public
+ [    ] |     private
+ [    ] |     protected
+        |
+ [    ] | BindingIdentifierOrPattern:
+ [    ] |     BindingIdentifier
+ [    ] |     BindingPattern
+        |
+ [    ] | OptionalParameterList:
+ [    ] |     OptionalParameter
+ [    ] |     OptionalParameterList ',' OptionalParameter
+        |
+ [    ] | OptionalParameter:
+ [    ] |     AccessibilityModifier ? BindingIdentifierOrPattern '?' TypeAnnotation ?
+ [    ] |     AccessibilityModifier ? BindingIdentifierOrPattern TypeAnnotation ? Initializer
+ [    ] |     BindingIdentifier '?' ':' StringLiteral
+        |
+ [    ] | RestParameter:
+ [    ] |     '...' BindingIdentifier TypeAnnotation ?
+        |
+ [WIP.] | PropertySignature:
+ [    ] |     PropertyName '?'? TypeAnnotation?
+        |
+ [    ] | ConstructSignature:
+ [    ] |     'new' TypeParameters? '(' ParameterList? ')' TypeAnnotation?
+        |
+ [    ] | IndexSignature:
+ [    ] |     '[' BindingIdentifier ':' ('string' | 'number') ']' TypeAnnotation
+        |
+ [WIP.] | MethodSignature:
+ [    ] |     PropertyName '?'? CallSignature
 ```
 
 Declaration context:
@@ -482,6 +532,35 @@ EnumTyp.val2->EnumTyp.name_ |> Js.log;
 "Val2"->EnumTyp.fromName_ |> Js.log;
 /* => EnumTyp.Val2 */
 ````
+
+## Literal object type declaration
+
+TypeScript allows us to declare literal object types. See the following example:
+
+````typescript
+declare const myVar: {
+    prop1: string;
+    prop2: number;
+};
+````
+
+In the code above you can see that the type of `myVar` is an object with two properties (`prop1` and `prop2`).
+
+To create the same declaration in ReasonML we will create first a type representing the inline object type and use that type on `myVar` declaration. See the following example:
+
+````reason
+module MyVar = {
+  type t;
+  
+  [@bs.get] external getProp1: (t) => string = "prop1";
+  [@bs.send] external setProp1: (t, string) => string = "prop1";
+
+  [@bs.get] external getProp2: (t) => float = "prop2";
+  [@bs.send] external setProp2: (t, float) => float = "prop2";
+}
+
+[@bs.val] external myVar: MyVar.t = "myVar";
+```
 
 ---
 

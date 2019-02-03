@@ -8,7 +8,8 @@ import {
     VariableDeclaration,
     FunctionDeclaration,
     EnumDeclaration,
-    TypeLiteralNode
+    TypeLiteralNode,
+    MethodSignature
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -111,6 +112,16 @@ function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker
                 kind: node.kind,
                 type: buildType(ns, node as any, checker, tsNodes),
                 parameters: [],
+            };
+
+        case SyntaxKind.MethodSignature:
+            const methodSign = node as MethodSignature;
+            return {
+                ns: normalizeNamespace(ns),
+                name: node.name!.getText(),
+                kind: node.kind,
+                type: buildType(ns, node as any, checker, tsNodes),
+                parameters: methodSign.parameters.map(p => ({ name: p.name.getText(), type: buildType(ns, p as any, checker, tsNodes) })),
             };
     }
     return null!;
