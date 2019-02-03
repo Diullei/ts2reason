@@ -743,7 +743,7 @@ describe("Var declaration binding a literal type - 001", () =>
   [@bs.get] external getGreeting: (t) => string = \"greeting\";
   [@bs.send] external setGreeting: (t, string) => string = \"greeting\";
   
-  module Duration = {
+  module MyVar_Duration = {
     type t;
     
     [@bs.get] external getName: (t) => string = \"name\";
@@ -753,8 +753,8 @@ describe("Var declaration binding a literal type - 001", () =>
     [@bs.send] external setIsValid: (t, bool) => bool = \"isValid\";
   }
   
-  [@bs.get] external getDuration: (t) => Duration.t = \"duration\";
-  [@bs.send] external setDuration: (t, Duration.t) => Duration.t = \"duration\";
+  [@bs.get] external getDuration: (t) => MyVar_Duration.t = \"duration\";
+  [@bs.send] external setDuration: (t, MyVar_Duration.t) => MyVar_Duration.t = \"duration\";
   
   [@bs.get] external getColor: (t) => string = \"color\";
   [@bs.send] external setColor: (t, string) => string = \"color\";
@@ -796,6 +796,52 @@ describe("Var declaration binding a literal type - 002", () =>
 }
 
 [@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+
+",
+         )
+    )
+  )
+);
+
+describe("Var declaration binding a literal type - 003", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+            "
+            declare let myVar: {
+                name: string[];
+                post: {title: string; content: string}
+            }[];
+            ",
+           )
+        |> Utils.checkReasonCode
+        ,
+      )
+      |> toEqual(
+           "module MyVar = {
+  type t;
+  
+  [@bs.get] external getName: (t) => Js.Array.t(string) = \"name\";
+  [@bs.send] external setName: (t, Js.Array.t(string)) => Js.Array.t(string) = \"name\";
+  
+  module MyVar_Post = {
+    type t;
+    
+    [@bs.get] external getTitle: (t) => string = \"title\";
+    [@bs.send] external setTitle: (t, string) => string = \"title\";
+    
+    [@bs.get] external getContent: (t) => string = \"content\";
+    [@bs.send] external setContent: (t, string) => string = \"content\";
+  }
+  
+  [@bs.get] external getPost: (t) => MyVar_Post.t = \"post\";
+  [@bs.send] external setPost: (t, MyVar_Post.t) => MyVar_Post.t = \"post\";
+}
+
+[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+let setMyVar = (_value: Js.Array.t(MyVar.t)): Js.Array.t(MyVar.t) => [%bs.raw {| myVar = _value |}];
 
 ",
          )

@@ -173,4 +173,45 @@ describe("Inspect a `type alias` declaration", () => {
       |> toEqual("string")
     )
   );
+
+  let node = extractTypesFromCode(
+               "
+            declare let myVar: {
+                name: string[];
+                post: {title: string; content: string}
+            };
+            ",
+             )[0];
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral property name", () =>
+      expect(node->TsNode.getType->TsType.getMembers[1]->TsNode.getName)
+      |> toEqual("post")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral property namespace 01", () =>
+      expect(node->TsNode.getType->TsType.getNs) |> toEqual([||])
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral property namespace 02", () =>
+      expect(node->TsNode.getType->TsType.getMembers[1]->TsNode.getNs)
+      |> toEqual([||])
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode typeLiteral property namespace 03", () =>
+      expect(
+        node->TsNode.getType->TsType.getMembers[1]
+        ->TsNode.getType
+        ->TsType.getMembers[0]
+        ->TsNode.getNs,
+      )
+      |> toEqual([|"myVar"|])
+    )
+  );
 });

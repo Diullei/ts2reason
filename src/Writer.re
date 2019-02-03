@@ -54,7 +54,7 @@ let writeReasonType = (writer: writerState, typ: TsNode.t) => {
 
   writer
   ->write("t_")
-  ->write(typ->TsNode.getNs |> Utils.createNameSpaceName)
+  ->write(typ->TsNode.getNs |> Utils.createNamespaceName)
   ->write(namespaceSplit)
   ->write(typ->TsNode.getName);
 };
@@ -101,8 +101,9 @@ let rec buildType =
   | TypeKind.TypeLiteral =>
     let tName = Utils.capitalize(Utils.normalizeName(typeLabel));
     let complement = setupWriterAs(writer);
-    let (writer, _, disambiguate) =
+    let (writer, _, normalizedName, disambiguate) =
       createLiteralType(
+        tsType->TsType.getNs,
         tName,
         tsType,
         tsNodes,
@@ -111,7 +112,7 @@ let rec buildType =
         [],
         false,
       );
-    (tName ++ ".t", disambiguate, writer);
+    (normalizedName ++ ".t", disambiguate, writer);
   | _ =>
     switch (writer->writePredefinedType(tsType)) {
     | Some(state) => (state->getCode, disambiguate, complementWriter)
@@ -217,19 +218,6 @@ and writeReferenceType =
   | [h, ..._] => writer->writeReasonType(h)
   }
 
-and writeModuleName = (writer: writerState, ns: array(string)) =>
-  writer->write(
-    Utils.capitalize(Utils.normalizeName(ns[(ns |> Array.length) - 1])),
-  )
-
-and writeBeginModuleFromNs = (writer: writerState, ns: array(string)) =>
-  writer
-  ->writeNewLine
-  ->write("module ")
-  ->writeModuleName(ns)
-  ->write(" = {")
-  ->increaseIndent
-
 and writeAbstractTypeDeclaration = (writer: writerState, typ: TsNode.t) =>
   writer->write("type t = ")->writeReasonType(typ)->write(";")
 
@@ -310,6 +298,7 @@ and createGetSetFunction =
 
 and createLiteralType =
     (
+      ns: array(string),
       typeLabel: string,
       tsType: TsType.t,
       tsNodes: array(TsNode.t),
@@ -318,17 +307,20 @@ and createLiteralType =
       typeNamesToPutInTheHead: list(string),
       addHeaderType: bool,
     ) => {
+  let (normalizedName, disambiguate) =
+    Utils.createModuleName(ns, typeLabel, disambiguate);
+
   let writer =
     writer
     ->write("module ")
-    ->writeModuleName([|typeLabel|])
+    ->write(normalizedName)
     ->write(" = {")
     ->increaseIndent
     ->writeNewLine;
 
   let (writer, typeNamesToPutInTheHead) =
     if (addHeaderType) {
-      let name = "t_" ++ Utils.capitalize(typeLabel);
+      let name = "t_" ++ normalizedName;
       (
         writer->write("type t = ")->write(name)->write(";"),
         [name, ...typeNamesToPutInTheHead],
@@ -355,7 +347,7 @@ and createLiteralType =
   );
 
   let writer = writer->decreaseIndent->writeNewLine->write("}")->writeNewLine;
-  (writer, typeNamesToPutInTheHead, disambiguate);
+  (writer, typeNamesToPutInTheHead, normalizedName, disambiguate);
 };
 
 let writeTypeArgumentsToFunctionDecl =

@@ -64,7 +64,7 @@ describe("Utils", () => {
   Expect.(
     test("createNameSpaceName", () =>
       expect(
-        Utils.createNameSpaceName([|
+        Utils.createNamespaceName([|
           "\"Module\"",
           "'Src'",
           "Types",

@@ -16,6 +16,7 @@ let convertTypeAliasDeclaration =
     switch (node->TsNode.getType->TsType.getTypeKind) {
     | TypeKind.TypeLiteral =>
       createLiteralType(
+        node->TsNode.getNs,
         node->TsNode.getName,
         node->TsNode.getType,
         tsNodes,
@@ -23,6 +24,13 @@ let convertTypeAliasDeclaration =
         writer,
         typeNamesToPutInTheHead,
         true,
+      )
+      |> (
+        ((writer, typeNamesToPutInTheHead, _, disambiguate)) => (
+          writer,
+          typeNamesToPutInTheHead,
+          disambiguate,
+        )
       )
 
     | _ =>
@@ -35,11 +43,18 @@ let convertTypeAliasDeclaration =
           setupWriterAs(writer),
         );
 
+      let (normalizedName, disambiguate) =
+        Utils.createModuleName(
+          node->TsNode.getNs,
+          node->TsNode.getName,
+          disambiguate,
+        );
+
       (
         writer
         ->writeIf(complementWriter->hasContent, complementWriter->getCode, "")
         ->write("module ")
-        ->writeModuleName([|node->TsNode.getName|])
+        ->write(normalizedName)
         ->write(" = {")
         ->increaseIndent
         ->writeNewLine
@@ -158,10 +173,17 @@ let convertEnumDeclaration =
       writer: writerState,
       typeNamesToPutInTheHead: list(string),
     ) => {
+  let (normalizedName, disambiguate) =
+    Utils.createModuleName(
+      node->TsNode.getNs,
+      node->TsNode.getName,
+      disambiguate,
+    );
+
   let writer =
     writer
     ->write("module ")
-    ->writeModuleName([|node->TsNode.getName|])
+    ->write(normalizedName)
     ->write(" = {")
     ->increaseIndent
     ->writeNewLine;

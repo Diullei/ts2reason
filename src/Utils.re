@@ -70,7 +70,7 @@ let makeIndent =
   | 0 => ""
   | size => ' ' |> String.make(size);
 
-let createNameSpaceName = (ns: array(string)) =>
+let createNamespaceName = (ns: array(string)) =>
   ns |> Array.to_list |> String.concat("_") |> normalizeName;
 
 module RefmtJS = {
@@ -83,3 +83,14 @@ let checkReasonCode = (code: string): string => {
   code |> RefmtJS.parseRE |> ignore;
   code;
 };
+
+let createModuleName =
+    (ns: array(string), typeLabel: string, disambiguate: list(string)) =>
+  capitalize(
+    normalizeName(
+      createNamespaceName(
+        (ns |> Array.to_list) @ [typeLabel] |> Array.of_list,
+      ),
+    ),
+  )
+  ->toUniqueName(disambiguate);

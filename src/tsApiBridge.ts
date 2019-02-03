@@ -51,12 +51,18 @@ interface TsNode {
     enumMembers?: TsEnumMember[];
 }
 
-type WithType = { type: TypeNode };
+type WithType = { type: TypeNode, name?: any; };
 
-function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function normalizeNamespace(ns: string[]) {
+    return ns.length == 0 ? [] : ns.slice(0, ns.length - 1);
+}
+
+function buildType(ns: string[], node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+    ns = ns.concat(node.name ? [node.name.getText()] : []);
+
     if (!node.type) {
         return {
-            ns: [],
+            ns: normalizeNamespace(ns),
             name: 'any',
             typeKind: TypeKind.Regular,
         };
@@ -64,102 +70,102 @@ function buildType(node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]): 
 
     switch (node.type.kind) {
         case SyntaxKind.ParenthesizedType:
-            return buildType(node.type as any, checker, tsNodes);
+            return buildType(ns, node.type as any, checker, tsNodes);
 
         case SyntaxKind.ArrayType:
-            return buildArrayType(node.type as any, checker, tsNodes);
+            return buildArrayType(ns, node.type as any, checker, tsNodes);
 
         case SyntaxKind.TupleType:
-            return buildTupleType(node.type as any, checker, tsNodes);
+            return buildTupleType(ns, node.type as any, checker, tsNodes);
 
         case SyntaxKind.TypeLiteral:
-            return buildTypeLiteral(node.type as any, checker, tsNodes);
+            return buildTypeLiteral(ns, node.type as any, checker, tsNodes);
 
         default:
-            return buildRegularType(node.type as any, checker, tsNodes);
+            return buildRegularType(ns, node.type as any, checker, tsNodes);
     }
 }
 
-function buildTupleType(node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildTupleType(ns: string[], node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
-        ns: [],
+        ns: normalizeNamespace(ns),
         typeKind: TypeKind.Tuple,
-        tupleTypes: node.elementTypes.map(et => buildType({ type: et }, checker, tsNodes))
+        tupleTypes: node.elementTypes.map(et => buildType(ns, { type: et }, checker, tsNodes))
     };
 }
 
-function buildArrayType(node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildArrayType(ns: string[], node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
-        ns: [],
+        ns: normalizeNamespace(ns),
         typeKind: TypeKind.Array,
-        arrayType: buildType({ type: node.elementType }, checker, tsNodes),
+        arrayType: buildType(ns, { type: node.elementType }, checker, tsNodes),
     };
 }
 
-function buildMember(node: ts.TypeElement, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
+function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
     switch (node.kind) {
         case SyntaxKind.PropertySignature:
             return {
-                ns: [],
+                ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
                 kind: node.kind,
-                type: buildType(node as any, checker, tsNodes),
+                type: buildType(ns, node as any, checker, tsNodes),
                 parameters: [],
             };
     }
     return null!;
 }
 
-function buildTypeLiteral(node: TypeLiteralNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildTypeLiteral(ns: string[], node: TypeLiteralNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
-        ns: [],
+        ns: normalizeNamespace(ns),
         typeKind: TypeKind.TypeLiteral,
-        members: node.members.map(m => buildMember(m, checker, tsNodes)).filter(m => m != null)
+        members: node.members.map(m => buildMember(ns, m, checker, tsNodes)).filter(m => m != null)
     };
 }
 
-function buildRegularType(node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildRegularType(ns: string[], node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
     return {
-        ns: [],
+        ns: normalizeNamespace(ns),
         name: node.getText(),
         typeKind: TypeKind.Regular,
     };
 }
 
-function buildTsNodeFromTypeAliasDeclaration(node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildTsNodeFromTypeAliasDeclaration(ns: string[], node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
-        ns: [],
+        ns: normalizeNamespace(ns),
         name: node.name.getText(),
         kind: node.kind,
-        type: buildType(node as any, checker, tsNodes),
+        type: buildType(ns, node as any, checker, tsNodes),
         parameters: [],
     });
 }
 
-function buildTsNodeFromVariableDeclaration(node: VariableDeclaration, isConst: boolean, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildTsNodeFromVariableDeclaration(ns: string[], node: VariableDeclaration, isConst: boolean, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
-        ns: [],
+        ns: normalizeNamespace(ns),
         name: node.name.getText(),
         kind: node.kind,
-        type: buildType(node as any, checker, tsNodes),
+        type: buildType(ns, node as any, checker, tsNodes),
         parameters: [],
         isConst,
     });
 }
 
-function buildTsNodeFromFunctionDeclaration(node: FunctionDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildTsNodeFromFunctionDeclaration(ns: string[], node: FunctionDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
-        ns: [],
+        ns: normalizeNamespace(ns),
         name: node.name!.getText(),
         kind: node.kind,
-        type: buildType(node as any, checker, tsNodes),
-        parameters: node.parameters.map(p => ({ name: p.name.getText(), type: buildType(p as any, checker, tsNodes) })),
+        type: buildType(ns, node as any, checker, tsNodes),
+        parameters: node.parameters.map(p => ({ name: p.name.getText(), type: buildType(ns, p as any, checker, tsNodes) })),
     });
 }
 
-function buildTsNodeFromEnumDeclaration(node: EnumDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildTsNodeFromEnumDeclaration(ns: string[], node: EnumDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
-        ns: [],
+        ns: normalizeNamespace(ns),
         name: node.name!.getText(),
         kind: node.kind,
         type: null!,
@@ -184,7 +190,7 @@ function extractTypes(program: Program, filename: string): TsNode[] {
     function visit(node: ts.Node) {
         switch (node.kind) {
             case SyntaxKind.TypeAliasDeclaration:
-                buildTsNodeFromTypeAliasDeclaration(node as TypeAliasDeclaration, checker, tsNodes);
+                buildTsNodeFromTypeAliasDeclaration([], node as TypeAliasDeclaration, checker, tsNodes);
                 break;
 
             case SyntaxKind.VariableDeclarationList:
@@ -199,12 +205,12 @@ function extractTypes(program: Program, filename: string): TsNode[] {
                 break;
 
             case SyntaxKind.VariableDeclaration:
-                buildTsNodeFromVariableDeclaration(node as VariableDeclaration, isConst, checker, tsNodes);
+                buildTsNodeFromVariableDeclaration([], node as VariableDeclaration, isConst, checker, tsNodes);
                 break;
 
             case SyntaxKind.FunctionDeclaration:
                 if ((node as FunctionDeclaration).name) {
-                    buildTsNodeFromFunctionDeclaration(node as FunctionDeclaration, checker, tsNodes);
+                    buildTsNodeFromFunctionDeclaration([], node as FunctionDeclaration, checker, tsNodes);
                 }
                 else {
                     ts.forEachChild(node, visit);
@@ -212,7 +218,7 @@ function extractTypes(program: Program, filename: string): TsNode[] {
                 break;
 
             case SyntaxKind.EnumDeclaration:
-                buildTsNodeFromEnumDeclaration(node as EnumDeclaration, checker, tsNodes);
+                buildTsNodeFromEnumDeclaration([], node as EnumDeclaration, checker, tsNodes);
                 break;
 
             default:

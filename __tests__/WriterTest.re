@@ -205,7 +205,7 @@ describe("Writer", () => {
     )
   );
 
-  Expect.(
+  /* Expect.(
     test("writeModuleName", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
       expect(
@@ -215,9 +215,9 @@ describe("Writer", () => {
       )
       |> toEqual("Ccc");
     })
-  );
+  ); */
 
-  Expect.(
+  /* Expect.(
     test("writeBeginModuleFromNs", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
       expect(
@@ -230,7 +230,7 @@ describe("Writer", () => {
       )
       |> toEqual("\nmodule Ccc = {\n}");
     })
-  );
+  ); */
 
   Expect.(
     test("writeAbstractTypeDeclaration", () => {
