@@ -160,8 +160,8 @@ This section contains the specification of the conversions that should be applie
  [    ] | RestParameter:
  [    ] |     '...' BindingIdentifier TypeAnnotation ?
         |
- [WIP.] | PropertySignature:
- [    ] |     PropertyName '?'? TypeAnnotation?
+ [done] | PropertySignature:
+ [done] |     PropertyName '?'? TypeAnnotation?
         |
  [    ] | ConstructSignature:
  [    ] |     'new' TypeParameters? '(' ParameterList? ')' TypeAnnotation?
@@ -358,6 +358,8 @@ module MyType = {
 ````
 
 Since TypeScript allows us to define recursive references we are declaring all the types as an abstract type in the header of the code. See the `type t_MyType;` in the code snippet above.
+
+> NOTE: As you can see, to create the ReasonML code we decided to use the [encapsulation field pattern](https://refactoring.guru/encapsulate-field) istead of create a record object. By doing this we are creating functions to get/set the object values.
 
 ### Ambient variable declaration
 
@@ -561,7 +563,6 @@ module MyVar = {
 
 [@bs.val] external myVar: MyVar.t = "myVar";
 ```
-
 ---
 
 > See the [api tests](./__tests__/MainTest.re) for more details.
