@@ -205,33 +205,6 @@ describe("Writer", () => {
     )
   );
 
-  /* Expect.(
-    test("writeModuleName", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeModuleName([|"aaa", "bbb", "ccc"|])
-        ->Writer.getCode,
-      )
-      |> toEqual("Ccc");
-    })
-  ); */
-
-  /* Expect.(
-    test("writeBeginModuleFromNs", () => {
-      let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);
-      expect(
-        wState
-        ->Writer.writeBeginModuleFromNs([|"aaa", "bbb", "ccc"|])
-        ->Writer.decreaseIndent
-        ->Writer.writeNewLine
-        ->Writer.write("}")
-        ->Writer.getCode,
-      )
-      |> toEqual("\nmodule Ccc = {\n}");
-    })
-  ); */
-
   Expect.(
     test("writeAbstractTypeDeclaration", () => {
       let wState = Writer.make(~nl=eol, ~code="", ~currentIdentation=0);

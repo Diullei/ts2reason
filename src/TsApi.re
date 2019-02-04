@@ -52,6 +52,7 @@ module TsNode = {
   external getParameters: t => Js.Array.t(TsParameter.t) = "parameters";
   [@bs.get]
   external getEnumMembers: t => Js.Array.t(TsEnumMember.t) = "enumMembers";
+  [@bs.get] external isOptional: t => bool = "optional";
 };
 
 [@bs.module "../src/tsApiBridge"]

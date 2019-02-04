@@ -16,7 +16,7 @@ This section contains the specification of the conversions that should be applie
  [    ] | Type:
  [    ] |     Union
  [    ] |     Intersection
- [    ] |     PrimaryType
+ [WIP.] |     PrimaryType
  [    ] |     FunctionType
  [    ] |     ConstructorType
         |

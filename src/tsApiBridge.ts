@@ -9,7 +9,8 @@ import {
     FunctionDeclaration,
     EnumDeclaration,
     TypeLiteralNode,
-    MethodSignature
+    MethodSignature,
+    PropertySignature
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -50,6 +51,7 @@ interface TsNode {
     parameters: TsParameter[];
     isConst?: boolean;
     enumMembers?: TsEnumMember[];
+    optional?: boolean;
 }
 
 type WithType = { type: TypeNode, name?: any; };
@@ -106,11 +108,13 @@ function buildArrayType(ns: string[], node: ArrayTypeNode, checker: ts.TypeCheck
 function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
     switch (node.kind) {
         case SyntaxKind.PropertySignature:
+            const propSign = node as PropertySignature;
             return {
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
                 kind: node.kind,
                 type: buildType(ns, node as any, checker, tsNodes),
+                optional: propSign.questionToken != null,
                 parameters: [],
             };
 

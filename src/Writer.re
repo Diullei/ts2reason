@@ -256,7 +256,11 @@ and createMemberGetFunction =
     );
   (
     writer
-    ->write({j|[@bs.get] external $name: (t) => $typeStr = "|j})
+    ->writeIf(
+        node->TsNode.isOptional,
+        {j|[@bs.get] external $name: (t) => option($typeStr) = "|j},
+        {j|[@bs.get] external $name: (t) => $typeStr = "|j},
+      )
     ->write(node->TsNode.getName)
     ->write("\";"),
     typeStr,
@@ -281,7 +285,7 @@ and createMemberSetFunction =
   );
 }
 
-and createGetSetFunction =
+and writeGetSetFunction =
     (
       writer: writerState,
       node: TsNode.t,
@@ -340,7 +344,7 @@ and createLiteralType =
                          writer
                          ->writeNewLine
                          ->writeNewLine
-                         ->createGetSetFunction(member, tsNodes, disambiguate)
+                         ->writeGetSetFunction(member, tsNodes, disambiguate)
 
                        | Ts.SyntaxKind.MethodSignature =>
                          writer
