@@ -885,7 +885,7 @@ let setMyVar = (_value: Js.Array.t(MyVar.t)): Js.Array.t(MyVar.t) => [%bs.raw {|
   )
 );
 
-describe("Optional property", () =>
+describe("Optional property - 001", () =>
   Expect.(
     test("convertCodeToReason", () =>
       expect(
@@ -902,6 +902,35 @@ module MyType = {
   type t = t_MyType;
   
   [@bs.get] external getProp1: (t) => option(string) = \"prop1\";
+  [@bs.send] external setProp1: (t, string) => string = \"prop1\";
+  
+  [@bs.get] external getProp2: (t) => option(float) = \"prop2\";
+  [@bs.send] external setProp2: (t, float) => float = \"prop2\";
+}
+
+",
+         )
+    )
+  )
+);
+
+describe("Optional property - 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "type MyType = { prop1: string; prop2?: number; };",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_MyType;
+
+module MyType = {
+  type t = t_MyType;
+  
+  [@bs.get] external getProp1: (t) => string = \"prop1\";
   [@bs.send] external setProp1: (t, string) => string = \"prop1\";
   
   [@bs.get] external getProp2: (t) => option(float) = \"prop2\";
