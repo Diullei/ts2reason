@@ -150,7 +150,7 @@ describe("Writer", () => {
         ),
       ],
       ((fakeObj, types, output)) => {
-        let (strVal, _, _) =
+        let (strVal, _, _, _) =
           Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
           ->Writer.buildType(
               "aaa",
@@ -158,6 +158,7 @@ describe("Writer", () => {
               types,
               [],
               Writer.make(~nl=eol, ~code="", ~currentIdentation=0),
+              0,
             );
         expect(strVal) |> toEqual(output);
       },
@@ -191,13 +192,14 @@ describe("Writer", () => {
         ),
       ],
       ((parList, output)) => {
-        let (writer, _, _) =
+        let (writer, _, _, _) =
           Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
           ->Writer.writeTypeArgumentsToFunctionDecl(
               parList,
               [||],
               Writer.make(~nl=eol, ~code="", ~currentIdentation=0),
               [],
+              0,
             );
 
         expect(writer->Writer.getCode) |> toEqual(output);

@@ -75,8 +75,9 @@ let rec buildType =
           tsNodes: array(TsNode.t),
           disambiguate: list(string),
           complementWriter: writerState,
+          indexAny: int,
         )
-        : (string, list(string), writerState) => {
+        : (string, list(string), writerState, int) => {
   let writer = setupWriterAs(currentWriter);
 
   switch (tsType->TsType.getTypeKind) {
@@ -87,6 +88,7 @@ let rec buildType =
       tsNodes,
       disambiguate,
       complementWriter,
+      indexAny,
     )
 
   | TypeKind.Tuple =>
@@ -96,6 +98,7 @@ let rec buildType =
       tsNodes,
       disambiguate,
       complementWriter,
+      indexAny,
     )
 
   | TypeKind.TypeLiteral =>
@@ -112,14 +115,20 @@ let rec buildType =
         [],
         false,
       );
-    (normalizedName ++ ".t", disambiguate, writer);
+    (normalizedName ++ ".t", disambiguate, writer, indexAny);
   | _ =>
-    switch (writer->writePredefinedType(tsType)) {
-    | Some(state) => (state->getCode, disambiguate, complementWriter)
+    switch (writer->writePredefinedType(tsType, indexAny)) {
+    | Some((state, indexAny)) => (
+        state->getCode,
+        disambiguate,
+        complementWriter,
+        indexAny,
+      )
     | None => (
         writer->writeReferenceType(tsType, tsNodes)->getCode,
         disambiguate,
         complementWriter,
+        indexAny,
       )
     }
   };
@@ -132,8 +141,9 @@ and writeArrayType =
       tsNodes: array(TsNode.t),
       disambiguate: list(string),
       complementWriter: writerState,
+      indexAny: int,
     ) => {
-  let (typeStr, disambiguate, complementWriter) =
+  let (typeStr, disambiguate, complementWriter, indexAny) =
     buildType(
       currentWriter,
       typeLabel,
@@ -141,8 +151,9 @@ and writeArrayType =
       tsNodes,
       disambiguate,
       complementWriter,
+      indexAny,
     );
-  ({j|Js.Array.t($typeStr)|j}, disambiguate, complementWriter);
+  ({j|Js.Array.t($typeStr)|j}, disambiguate, complementWriter, indexAny);
 }
 
 and writeTupleType =
@@ -153,6 +164,7 @@ and writeTupleType =
       tsNodes: array(TsNode.t),
       disambiguate: list(string),
       complementWriter: writerState,
+      indexAny: int,
     ) =>
   currentWriter
   ->write("(")
@@ -160,48 +172,52 @@ and writeTupleType =
       state =>
         tsType->TsType.getTupleTypes
         |> Array.fold_left(
-             ((state, i, disambiguate, complement), typ) => {
-               let (typeStr, disambiguate, complement) =
+             ((state, i, disambiguate, complement, indexAny), typ) => {
+               let (typeStr, disambiguate, complement, indexAny) =
                  state->buildType(
                    typeLabel,
                    typ,
                    tsNodes,
                    disambiguate,
                    complement,
+                   indexAny,
                  );
                (
                  state->writeIf(i == 0, "", ", ")->write(typeStr),
                  i + 1,
                  disambiguate,
                  complement,
+                 indexAny,
                );
              },
-             (state, 0, disambiguate, complementWriter),
+             (state, 0, disambiguate, complementWriter, indexAny),
            )
     )
   |> (
-    ((s, _, disambiguate, complement)) => (
+    ((s, _, disambiguate, complement, indexAny)) => (
       s->write(")")->getCode,
       disambiguate,
       complement,
+      indexAny,
     )
   )
 
 and writePredefinedType =
-    (writer: writerState, tsType: TsType.t): option(writerState) =>
+    (writer: writerState, tsType: TsType.t, indexAny: int)
+    : option((writerState, int)) =>
   switch (tsType->TsType.getName) {
-  | "string" => Some(writer->write("string"))
-  | "boolean" => Some(writer->write("bool"))
-  | "number" => Some(writer->write("float"))
-  | "any" => Some(writer->write("'any"))
-  | "unknown" => Some(writer->write("'unknown"))
+  | "any" => Some((writer->write({j|'any$indexAny|j}), indexAny + 1))
+  | "unknown" => Some((writer->write({j|'unknown$indexAny|j}), indexAny + 1))
+  | "string" => Some((writer->write("string"), indexAny))
+  | "boolean" => Some((writer->write("bool"), indexAny))
+  | "number" => Some((writer->write("float"), indexAny))
   | "void"
-  | "never" => Some(writer->write("unit"))
-  | "symbol" => Some(writer->write("Js.Types.symbol"))
-  | "null" => Some(writer->write("Js.Types.null_val"))
-  | "undefined" => Some(writer->write("Js.Types.undefined_val"))
-  | "object" => Some(writer->write("Js.Types.obj_val"))
-  | "bigint" => Some(writer->write("Int64.t"))
+  | "never" => Some((writer->write("unit"), indexAny))
+  | "symbol" => Some((writer->write("Js.Types.symbol"), indexAny))
+  | "null" => Some((writer->write("Js.Types.null_val"), indexAny))
+  | "undefined" => Some((writer->write("Js.Types.undefined_val"), indexAny))
+  | "object" => Some((writer->write("Js.Types.obj_val"), indexAny))
+  | "bigint" => Some((writer->write("Int64.t"), indexAny))
   | _ => None
   }
 
@@ -240,13 +256,14 @@ and createMemberGetFunction =
       disambiguate: list(string),
     ) => {
   let (name, disambiguate) = node->createGetName(disambiguate);
-  let (typeStr, disambiguate, complementWriter) =
+  let (typeStr, disambiguate, complementWriter, indexAny) =
     writer->buildType(
       node->TsNode.getName,
       node->TsNode.getType,
       tsNodes,
       disambiguate,
       setupWriterAs(writer),
+      0,
     );
   let writer =
     writer->writeIf(
@@ -377,21 +394,23 @@ and writeFunctionDeclaration =
     ) => {
   let (name, disambiguate) =
     node->TsNode.getName->createUniqueName(disambiguate);
-  let (parsWriter, disambiguate, complementWriter) =
+  let (parsWriter, disambiguate, complementWriter, indexAny) =
     writeTypeArgumentsToFunctionDecl(
       setupWriterAs(writer),
       node->TsNode.getParameters,
       tsNodes,
       setupWriterAs(writer),
       disambiguate,
+      0,
     );
-  let (typeStr, disambiguate, complementWriter) =
+  let (typeStr, disambiguate, complementWriter, indexAny) =
     writer->buildType(
       node->TsNode.getName,
       node->TsNode.getType,
       tsNodes,
       disambiguate,
       complementWriter,
+      indexAny,
     );
 
   let writer =
@@ -415,19 +434,21 @@ and writeTypeArgumentsToFunctionDecl =
       tsNodes: array(TsNode.t),
       complementWriter: writerState,
       disambiguate: list(string),
+      indexAny: int,
     )
-    : (writerState, list(string), writerState) => {
+    : (writerState, list(string), writerState, int) => {
   let state = writer->write("(");
   pars
   |> Array.fold_left(
-       ((state, i, disambiguate, complementWriter), par) => {
-         let (typeStr, disambiguate, complementWriter) =
+       ((state, i, disambiguate, complementWriter, indexAny), par) => {
+         let (typeStr, disambiguate, complementWriter, indexAny) =
            state->buildType(
              par->TsParameter.getName,
              par->TsParameter.getType,
              tsNodes,
              disambiguate,
              complementWriter,
+             indexAny,
            );
          (
            if (par->TsParameter.isOptional) {
@@ -443,15 +464,17 @@ and writeTypeArgumentsToFunctionDecl =
            i + 1,
            disambiguate,
            complementWriter,
+           indexAny,
          );
        },
-       (state, 0, disambiguate, complementWriter),
+       (state, 0, disambiguate, complementWriter, indexAny),
      )
   |> (
-    ((s, _, disambiguate, complement)) => (
+    ((s, _, disambiguate, complement, indexAny)) => (
       s->write(")"),
       disambiguate,
       complement,
+      indexAny,
     )
   );
 };

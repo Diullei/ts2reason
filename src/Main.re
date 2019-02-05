@@ -34,13 +34,14 @@ let convertTypeAliasDeclaration =
       )
 
     | _ =>
-      let (typeStr, disambiguate, complementWriter) =
+      let (typeStr, disambiguate, complementWriter, _) =
         writer->buildType(
           node->TsNode.getName,
           node->TsNode.getType,
           tsNodes,
           disambiguate,
           setupWriterAs(writer),
+          0
         );
 
       let (normalizedName, disambiguate) =
@@ -82,13 +83,14 @@ let convertVariableDeclaration =
   let (valName, disambiguate) =
     node->TsNode.getName->createUniqueName(disambiguate);
   let (setName, disambiguate) = node->createSetName(disambiguate);
-  let (typeStr, disambiguate, complementWriter) =
+  let (typeStr, disambiguate, complementWriter, _) =
     writer->buildType(
       node->TsNode.getName,
       node->TsNode.getType,
       tsNodes,
       disambiguate,
       setupWriterAs(writer),
+      0
     );
 
   (

@@ -45,7 +45,7 @@ describe("Type alias declaration binding a predefined type :: any", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual("module MyObjType = {
-  type t = 'any;
+  type t = 'any0;
 }
 
 ")
@@ -62,7 +62,7 @@ describe("Type alias declaration binding a predefined type :: unknown", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual("module MyObjType = {
-  type t = 'unknown;
+  type t = 'unknown0;
 }
 
 ")
@@ -362,8 +362,8 @@ describe("Variable declaration with no type", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.val] external value: 'any = \"value\";
-let setValue = (_value: 'any): 'any => [%bs.raw {| value = _value |}];
+           "[@bs.val] external value: 'any0 = \"value\";
+let setValue = (_value: 'any0): 'any0 => [%bs.raw {| value = _value |}];
 
 ",
          )
@@ -416,8 +416,8 @@ describe("Variable declaration list - simple type", () =>
            "[@bs.val] external a: bool = \"a\";
 let setA = (_value: bool): bool => [%bs.raw {| a = _value |}];
 
-[@bs.val] external b: 'any = \"b\";
-let setB = (_value: 'any): 'any => [%bs.raw {| b = _value |}];
+[@bs.val] external b: 'any0 = \"b\";
+let setB = (_value: 'any0): 'any0 => [%bs.raw {| b = _value |}];
 
 [@bs.val] external c: float = \"c\";
 let setC = (_value: float): float => [%bs.raw {| c = _value |}];
@@ -475,7 +475,7 @@ describe("Function declaration - 003", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.send] external myFunc: (string, bool) => 'any = \"myFunc\";
+           "[@bs.send] external myFunc: (string, bool) => 'any0 = \"myFunc\";
 
 ",
          )
@@ -954,7 +954,7 @@ describe("Optional argument", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.send] external add: ('any, ~b: string=?) => 'any = \"add\";
+           "[@bs.send] external add: ('any0, ~b: string=?) => 'any1 = \"add\";
 
 ",
          )
