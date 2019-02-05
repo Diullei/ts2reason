@@ -10,7 +10,8 @@ import {
     EnumDeclaration,
     TypeLiteralNode,
     MethodSignature,
-    PropertySignature
+    PropertySignature,
+    ParameterDeclaration
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -28,6 +29,7 @@ enum TypeKind {
 interface TsParameter {
     name: string;
     type: TsType;
+    optional?: boolean;
 }
 
 interface TsEnumMember {
@@ -105,6 +107,14 @@ function buildArrayType(ns: string[], node: ArrayTypeNode, checker: ts.TypeCheck
     };
 }
 
+function buildParameter(p: ParameterDeclaration, ns: string[], checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    return {
+        name: p.name.getText(),
+        type: buildType(ns, p as any, checker, tsNodes),
+        optional: p.questionToken != null,
+    };
+}
+
 function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
     switch (node.kind) {
         case SyntaxKind.PropertySignature:
@@ -125,7 +135,9 @@ function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker
                 name: node.name!.getText(),
                 kind: node.kind,
                 type: buildType(ns, node as any, checker, tsNodes),
-                parameters: methodSign.parameters.map(p => ({ name: p.name.getText(), type: buildType(ns, p as any, checker, tsNodes) })),
+                parameters: methodSign
+                    .parameters
+                    .map(p => buildParameter(p, ns, checker, tsNodes)),
             };
     }
     return null!;
@@ -174,7 +186,9 @@ function buildTsNodeFromFunctionDeclaration(ns: string[], node: FunctionDeclarat
         name: node.name!.getText(),
         kind: node.kind,
         type: buildType(ns, node as any, checker, tsNodes),
-        parameters: node.parameters.map(p => ({ name: p.name.getText(), type: buildType(ns, p as any, checker, tsNodes) })),
+        parameters: node
+            .parameters
+            .map(p => buildParameter(p, ns, checker, tsNodes)),
     });
 }
 

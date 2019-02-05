@@ -32,6 +32,7 @@ module TsParameter = {
 
   [@bs.get] external getName: t => string = "name";
   [@bs.get] external getType: t => TsType.t = "type";
+  [@bs.get] external isOptional: t => bool = "optional";
 };
 
 module TsEnumMember = {

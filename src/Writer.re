@@ -430,7 +430,16 @@ and writeTypeArgumentsToFunctionDecl =
              complementWriter,
            );
          (
-           state->writeIf(i == 0, {j|$typeStr|j}, {j|, $typeStr|j}),
+           if (par->TsParameter.isOptional) {
+             let parameterName = par->TsParameter.getName;
+             state->writeIf(
+               i == 0,
+               {j|~$parameterName: $typeStr=?|j},
+               {j|, ~$parameterName: $typeStr=?|j},
+             );
+           } else {
+             state->writeIf(i == 0, {j|$typeStr|j}, {j|, $typeStr|j});
+           },
            i + 1,
            disambiguate,
            complementWriter,

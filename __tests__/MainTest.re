@@ -942,3 +942,22 @@ module MyType = {
     )
   )
 );
+
+describe("Optional argument", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "declare function add(a, b?: string)",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.send] external add: ('any, ~b: string=?) => 'any = \"add\";
+
+",
+         )
+    )
+  )
+);

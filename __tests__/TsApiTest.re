@@ -230,4 +230,20 @@ describe("Inspect a `type alias` declaration", () => {
       |> toEqual("greet")
     )
   );
+
+  let node = extractTypesFromCode("declare function add(a, b?: string)")[0];
+
+  Expect.(
+    test("extractTypesFromCode method - optional paramater name", () =>
+      expect(node->TsNode.getParameters[1]->TsParameter.getName)
+      |> toEqual("b")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode method - optional paramater isOptional", () =>
+      expect(node->TsNode.getParameters[1]->TsParameter.isOptional)
+      |> toEqual(true)
+    )
+  );
 });

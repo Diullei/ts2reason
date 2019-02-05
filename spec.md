@@ -153,7 +153,7 @@ This section contains the specification of the conversions that should be applie
  [    ] |     OptionalParameterList ',' OptionalParameter
         |
  [    ] | OptionalParameter:
- [    ] |     AccessibilityModifier ? BindingIdentifierOrPattern '?' TypeAnnotation ?
+ [done] |     AccessibilityModifier ? BindingIdentifierOrPattern '?' TypeAnnotation ?
  [    ] |     AccessibilityModifier ? BindingIdentifierOrPattern TypeAnnotation ? Initializer
  [    ] |     BindingIdentifier '?' ':' StringLiteral
         |
