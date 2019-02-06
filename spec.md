@@ -198,7 +198,7 @@ type MyNameType = string;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyNameType = {
     type t = string;
 }
@@ -216,7 +216,7 @@ type MyObjType = any;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyObjType = {
     type t = 'any;
 }
@@ -234,7 +234,7 @@ type MyObjType = unknown;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyObjType = {
     type t = 'unknown;
 }
@@ -252,7 +252,7 @@ type MyObjType = void;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyObjType = {
     type t = unit;
 }
@@ -280,7 +280,7 @@ type MyObjType = never;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyObjType = {
     type t = unit;
 }
@@ -303,7 +303,7 @@ type MyType = string[];
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyType = {
     type t = Js.Array.t(string);
 }
@@ -326,7 +326,7 @@ type MyType = [string, number, boolean];
 
 ReasonML equivalent code:
 
-````reason
+```reason
 module MyType = {
     type t = (string, int, bool);
 }
@@ -345,7 +345,7 @@ type MyType = {
 
 ReasonML equivalent code:
 
-````reason
+```reason
 type t_MyType;
 
 module MyType = {
@@ -383,7 +383,7 @@ declare const value2: number;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 [@bs.val] external value1: float = "value1";
 let setValue1 = (_value: float): float => [%bs.raw {| value1 = _value |}];
 
@@ -412,7 +412,7 @@ declare function greet(greeting: string): void;
 
 ReasonML equivalent code:
 
-````reason
+```reason
 [@bs.send] external greet: (string) => unit = "greet";
 ````
 
@@ -454,7 +454,7 @@ declare enum EnumTyp {
 
 ReasonML equivalent:
 
-````reason
+```reason
 module EnumTyp = {
   [@bs.deriving jsConverter]
   type t =
@@ -478,7 +478,7 @@ declare enum EnumTyp {
 
 ReasonML equivalent:
 
-````reason
+```reason
 module EnumTyp = {
   type t;
 
@@ -509,7 +509,7 @@ console.log(EnumTyp["Val2"])
 
 To have the equivalent behaviour on ReasonML side the code will generate two aditional functions `name_(...)` and `fromName_(...)`:
 
-````reason
+```reason
 module EnumTyp = {
   type t;
 
@@ -552,7 +552,7 @@ In the code above you can see that the type of `myVar` is an object with two pro
 
 To create the same declaration in ReasonML we will create first a type representing the inline object type and use that type on `myVar` declaration. See the following example:
 
-````reason
+```reason
 module MyVar = {
   type t;
   
@@ -565,6 +565,7 @@ module MyVar = {
 
 [@bs.val] external myVar: MyVar.t = "myVar";
 ```
+
 ---
 
 > See the [api tests](./__tests__/MainTest.re) for more details.
