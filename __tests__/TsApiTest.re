@@ -4,7 +4,7 @@ open Ts;
 
 [@bs.val] [@bs.module "os"] external eol: string = "EOL";
 
-describe("Inspect a `type alias` declaration", () => {
+describe("Type declarations", () => {
   let node = extractTypesFromCode("type Typ = string")[0];
 
   Expect.(
@@ -244,6 +244,37 @@ describe("Inspect a `type alias` declaration", () => {
     test("extractTypesFromCode method - optional paramater isOptional", () =>
       expect(node->TsNode.getParameters[1]->TsParameter.isOptional)
       |> toEqual(true)
+    )
+  );
+
+  let node = extractTypesFromCode(
+               "declare interface InterfTyp { years: number; y: number; };",
+             )[0];
+
+  Expect.(
+    test("extractTypesFromCode interfaceDeclaration name", () =>
+      expect(node->TsNode.getName) |> toEqual("InterfTyp")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode interfaceDeclaration kind", () =>
+      expect(node->TsNode.getKind)
+      |> toEqual(SyntaxKind.InterfaceDeclaration)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode interfaceDeclaration member count", () =>
+      expect(node->TsNode.getType->TsType.getMembers |> Array.length)
+      |> toEqual(2)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode interfaceDeclaration member->[0]->name", () =>
+      expect(node->TsNode.getType->TsType.getMembers[0]->TsNode.getName)
+      |> toEqual("years")
     )
   );
 });

@@ -49,11 +49,11 @@ module TsNode = {
   [@bs.get] external getKind: t => SyntaxKind.t = "kind";
   [@bs.get] external getType: t => TsType.t = "type";
   [@bs.get] external isConst: t => bool = "isConst";
+  [@bs.get] external isOptional: t => bool = "optional";
   [@bs.get]
   external getParameters: t => Js.Array.t(TsParameter.t) = "parameters";
   [@bs.get]
   external getEnumMembers: t => Js.Array.t(TsEnumMember.t) = "enumMembers";
-  [@bs.get] external isOptional: t => bool = "optional";
 };
 
 [@bs.module "../src/tsApiBridge"]

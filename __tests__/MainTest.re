@@ -1004,3 +1004,41 @@ describe("Var type with an empty literal type", () =>
   )
 );
 
+describe("Interface declaration 001", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare interface InterfTyp { 
+                years: number; 
+                y: number; 
+             }
+
+             declare const myVar: InterfTyp;
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_InterfTyp;
+
+module InterfTyp = {
+  type t = t_InterfTyp;
+  
+  [@bs.get] external getYears: (t) => float = \"years\";
+  [@bs.send] external setYears: (t, float) => float = \"years\";
+  
+  [@bs.get] external getY: (t) => float = \"y\";
+  [@bs.send] external setY: (t, float) => float = \"y\";
+}
+
+[@bs.val] external myVar: t_InterfTyp = \"\";
+
+",
+         )
+    )
+  )
+);
+

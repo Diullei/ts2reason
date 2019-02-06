@@ -11,7 +11,8 @@ import {
     TypeLiteralNode,
     MethodSignature,
     PropertySignature,
-    ParameterDeclaration
+    ParameterDeclaration,
+    InterfaceDeclaration
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -203,6 +204,20 @@ function buildTsNodeFromEnumDeclaration(ns: string[], node: EnumDeclaration, che
     });
 }
 
+function buildTsNodeFromInterfaceDeclaration(ns: string[], node: InterfaceDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    tsNodes.push({
+        ns: normalizeNamespace(ns),
+        name: node.name!.getText(),
+        kind: node.kind,
+        type: {
+            ns: normalizeNamespace(ns),
+            typeKind: TypeKind.TypeLiteral,
+            members: node.members.map(m => buildMember(ns, m, checker, tsNodes)).filter(m => m != null)
+        },
+        parameters: [],
+    });
+}
+
 function extractTypes(program: Program, filename: string): TsNode[] {
     let checker = program.getTypeChecker();
     let tsNodes: TsNode[] = [];
@@ -248,6 +263,10 @@ function extractTypes(program: Program, filename: string): TsNode[] {
 
             case SyntaxKind.EnumDeclaration:
                 buildTsNodeFromEnumDeclaration([], node as EnumDeclaration, checker, tsNodes);
+                break;
+
+            case SyntaxKind.InterfaceDeclaration:
+                buildTsNodeFromInterfaceDeclaration([], node as InterfaceDeclaration, checker, tsNodes);
                 break;
 
             default:

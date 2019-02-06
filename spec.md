@@ -53,7 +53,7 @@ This section contains the specification of the conversions that should be applie
  [done] |     'declare' AmbientVariableDeclaration
  [done] |     'declare' AmbientFunctionDeclaration
  [    ] |     'declare' AmbientClassDeclaration
- [    ] |     'declare' InterfaceDeclaration
+ [WIP.] |     'declare' InterfaceDeclaration
  [    ] |     'declare' AmbientEnumDeclaration
  [    ] |     'declare' AmbientNamespaceDeclaration
         |
