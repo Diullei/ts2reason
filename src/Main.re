@@ -41,7 +41,7 @@ let convertTypeAliasDeclaration =
           tsNodes,
           disambiguate,
           setupWriterAs(writer),
-          0
+          0,
         );
 
       let (normalizedName, disambiguate) =
@@ -90,7 +90,7 @@ let convertVariableDeclaration =
       tsNodes,
       disambiguate,
       setupWriterAs(writer),
-      0
+      0,
     );
 
   (
@@ -232,8 +232,7 @@ let convertEnumDeclaration =
   );
 };
 
-let convertCodeToReason = (code: string, writer: writerState) => {
-  let tsNodes = TsApi.extractTypesFromCode(code);
+let tSCodeToReason = (tsNodes: Js.Array.t(TsNode.t), writer: writerState) => {
   let (writer, typeNamesToPutInTheHead) =
     tsNodes
     |> Array.fold_left(
@@ -297,7 +296,6 @@ let convertCodeToReason = (code: string, writer: writerState) => {
            headerWriter->write({j|type $typeName;|j})->writeNewLine,
          headerWriter,
        );
-
   (
     if (headerWriter->hasContent) {
       headerWriter->writeNewLine->getCode;
@@ -306,4 +304,17 @@ let convertCodeToReason = (code: string, writer: writerState) => {
     }
   )
   ++ writer->getCode;
+};
+
+module NodeJs = {
+  [@bs.module "fs"] external readFileSync: (string, string) => string = "";
+};
+
+let convertCodeToReason = (code: string, writer: writerState) => {
+  writer |> tSCodeToReason(TsApi.extractTypesFromCode(code));
+};
+
+let convertFileToReason = (file: string) => {
+  Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+  |> tSCodeToReason(TsApi.extractTypesFromFile(file));
 };

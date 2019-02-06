@@ -94,3 +94,5 @@ npm-debug.log
 
 /src/*.js
 /src/**/*.js
+
+/example
