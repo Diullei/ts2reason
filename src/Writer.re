@@ -67,6 +67,13 @@ let writeIf =
     writer->write(elseText);
   };
 
+let returnFirstIfDifferent = (first: string, second: string) =>
+  if (first == second) {
+    "";
+  } else {
+    first;
+  };
+
 let rec buildType =
         (
           currentWriter: writerState,
@@ -282,7 +289,7 @@ and createMemberGetFunction =
         {j|[@bs.get] external $name: (t) => option($typeStr) = "|j},
         {j|[@bs.get] external $name: (t) => $typeStr = "|j},
       )
-    ->write(node->TsNode.getName)
+    ->write(returnFirstIfDifferent(node->TsNode.getName, name))
     ->write("\";"),
     typeStr,
     disambiguate,
@@ -300,7 +307,7 @@ and createMemberSetFunction =
   (
     writer
     ->write({j|[@bs.send] external $name: (t, $typeStr) => $typeStr = "|j})
-    ->write(node->TsNode.getName)
+    ->write(returnFirstIfDifferent(node->TsNode.getName, name))
     ->write("\";"),
     disambiguate,
   );
@@ -415,7 +422,7 @@ and writeFunctionDeclaration =
       disambiguate,
       0,
     );
-  let (typeStr, disambiguate, complementWriter, indexAny) =
+  let (typeStr, disambiguate, complementWriter, _indexAny) =
     writer->buildType(
       node->TsNode.getName,
       node->TsNode.getType,
@@ -433,7 +440,7 @@ and writeFunctionDeclaration =
     ->write(": ")
     ->write(parsWriter->getCode)
     ->write({j| => $typeStr = "|j})
-    ->write(node->TsNode.getName)
+    ->write(returnFirstIfDifferent(node->TsNode.getName, name))
     ->write("\";")
     ->writeNewLine;
 

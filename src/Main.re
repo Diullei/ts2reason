@@ -103,7 +103,7 @@ let convertVariableDeclaration =
     ->write("[@bs.val] external ")
     ->write(valName)
     ->write({j|: $typeStr = "|j})
-    ->write(node->TsNode.getName)
+    ->write(returnFirstIfDifferent(node->TsNode.getName, valName))
     ->write("\";")
     ->writeNewLine
     |> (

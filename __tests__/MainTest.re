@@ -344,7 +344,7 @@ describe("Variable declaration binding a simple type :: string", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.val] external a: float = \"a\";
+           "[@bs.val] external a: float = \"\";
 let setA = (_value: float): float => [%bs.raw {| a = _value |}];
 
 ",
@@ -362,7 +362,7 @@ describe("Variable declaration with no type", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.val] external value: 'any0 = \"value\";
+           "[@bs.val] external value: 'any0 = \"\";
 let setValue = (_value: 'any0): 'any0 => [%bs.raw {| value = _value |}];
 
 ",
@@ -380,7 +380,7 @@ describe("Variable declaration binding a simple type :: (let) string", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.val] external a: float = \"a\";
+           "[@bs.val] external a: float = \"\";
 let setA = (_value: float): float => [%bs.raw {| a = _value |}];
 
 ",
@@ -397,7 +397,7 @@ describe("Variable declaration binding a simple type :: (const) string", () =>
         |> Main.convertCodeToReason("declare const a: number;")
         |> Utils.checkReasonCode,
       )
-      |> toEqual("[@bs.val] external a: float = \"a\";
+      |> toEqual("[@bs.val] external a: float = \"\";
 
 ")
     )
@@ -413,13 +413,13 @@ describe("Variable declaration list - simple type", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.val] external a: bool = \"a\";
+           "[@bs.val] external a: bool = \"\";
 let setA = (_value: bool): bool => [%bs.raw {| a = _value |}];
 
-[@bs.val] external b: 'any0 = \"b\";
+[@bs.val] external b: 'any0 = \"\";
 let setB = (_value: 'any0): 'any0 => [%bs.raw {| b = _value |}];
 
-[@bs.val] external c: float = \"c\";
+[@bs.val] external c: float = \"\";
 let setC = (_value: float): float => [%bs.raw {| c = _value |}];
 
 ",
@@ -438,7 +438,7 @@ describe("Function declaration - 001", () =>
            )
         |> Utils.checkReasonCode,
       )
-      |> toEqual("[@bs.send] external greet: (string) => unit = \"greet\";
+      |> toEqual("[@bs.send] external greet: (string) => unit = \"\";
 
 ")
     )
@@ -456,7 +456,7 @@ describe("Function declaration - 002", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.send] external myFunc: (string, bool) => float = \"myFunc\";
+           "[@bs.send] external myFunc: (string, bool) => float = \"\";
 
 ",
          )
@@ -475,7 +475,7 @@ describe("Function declaration - 003", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.send] external myFunc: (string, bool) => 'any0 = \"myFunc\";
+           "[@bs.send] external myFunc: (string, bool) => 'any0 = \"\";
 
 ",
          )
@@ -760,7 +760,7 @@ describe("Var declaration binding a literal type - 001", () =>
   [@bs.send] external setColor: (t, string) => string = \"color\";
 }
 
-[@bs.val] external myVar: MyVar.t = \"myVar\";
+[@bs.val] external myVar: MyVar.t = \"\";
 
 ",
          )
@@ -795,7 +795,7 @@ describe("Var declaration binding a literal type - 002", () =>
   [@bs.send] external setIsValid: (t, bool) => bool = \"isValid\";
 }
 
-[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"\";
 
 ",
          )
@@ -840,7 +840,7 @@ describe("Var declaration binding a literal type - 003", () =>
   [@bs.send] external setPost: (t, MyVar_Post.t) => MyVar_Post.t = \"post\";
 }
 
-[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"\";
 let setMyVar = (_value: Js.Array.t(MyVar.t)): Js.Array.t(MyVar.t) => [%bs.raw {| myVar = _value |}];
 
 ",
@@ -872,11 +872,11 @@ describe("Var declaration binding a literal type - 004", () =>
   [@bs.get] external getName: (t) => Js.Array.t(string) = \"name\";
   [@bs.send] external setName: (t, Js.Array.t(string)) => Js.Array.t(string) = \"name\";
   
-  [@bs.send] external greet: (string) => unit = \"greet\";
+  [@bs.send] external greet: (string) => unit = \"\";
   
 }
 
-[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"myVar\";
+[@bs.val] external myVar: Js.Array.t(MyVar.t) = \"\";
 let setMyVar = (_value: Js.Array.t(MyVar.t)): Js.Array.t(MyVar.t) => [%bs.raw {| myVar = _value |}];
 
 ",
@@ -954,7 +954,7 @@ describe("Optional argument", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.send] external add: ('any0, ~b: string=?) => 'any1 = \"add\";
+           "[@bs.send] external add: ('any0, ~b: string=?) => 'any1 = \"\";
 
 ",
          )
@@ -996,7 +996,7 @@ describe("Var type with an empty literal type", () =>
         |> Utils.checkReasonCode,
       )
       |> toEqual(
-           "[@bs.val] external myVar: Js.Types.obj_val = \"myVar\";
+           "[@bs.val] external myVar: Js.Types.obj_val = \"\";
 
 ",
          )
