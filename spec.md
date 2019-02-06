@@ -2,6 +2,8 @@
 
 This section contains the specification of the conversions that should be applied in order to represent the TypeScript definition as a ReasonML binding.
 
+> NOTE: this specification is constantly changing
+
 ### TypeScript grammar
 
 > This grammar will be extended as new features are implemented

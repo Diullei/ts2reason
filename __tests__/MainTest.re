@@ -961,3 +961,46 @@ describe("Optional argument", () =>
     )
   )
 );
+
+describe("Literal type with an empty literal type", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "type MyType = {};",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_MyType = Js.Types.obj_val;
+
+module MyType = {
+  type t = t_MyType;
+}
+
+",
+         )
+    )
+  )
+);
+
+describe("Var type with an empty literal type", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "declare const myVar: {};",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.val] external myVar: Js.Types.obj_val = \"myVar\";
+
+",
+         )
+    )
+  )
+);
+

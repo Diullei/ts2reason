@@ -102,20 +102,24 @@ let rec buildType =
     )
 
   | TypeKind.TypeLiteral =>
-    let tName = Utils.capitalize(Utils.normalizeName(typeLabel));
-    let complement = setupWriterAs(writer);
-    let (writer, _, normalizedName, disambiguate) =
-      createLiteralType(
-        tsType->TsType.getNs,
-        tName,
-        tsType,
-        tsNodes,
-        disambiguate,
-        complement,
-        [],
-        false,
-      );
-    (normalizedName ++ ".t", disambiguate, writer, indexAny);
+    if (tsType->TsType.getMembers |> Array.length == 0) {
+      ("Js.Types.obj_val", disambiguate, writer, indexAny);
+    } else {
+      let tName = Utils.capitalize(Utils.normalizeName(typeLabel));
+      let complement = setupWriterAs(writer);
+      let (writer, _, normalizedName, disambiguate) =
+        createLiteralType(
+          tsType->TsType.getNs,
+          tName,
+          tsType,
+          tsNodes,
+          disambiguate,
+          complement,
+          [],
+          false,
+        );
+      (normalizedName ++ ".t", disambiguate, writer, indexAny);
+    }
   | _ =>
     switch (writer->writePredefinedType(tsType, indexAny)) {
     | Some((state, indexAny)) => (
@@ -341,10 +345,18 @@ and createLiteralType =
 
   let (writer, typeNamesToPutInTheHead) =
     if (addHeaderType) {
-      let name = "t_" ++ normalizedName;
+      let headName =
+        if (tsType->TsType.getMembers |> Array.length > 0) {
+          {j|t_$normalizedName|j};
+        } else {
+          {j|t_$normalizedName = Js.Types.obj_val|j};
+        };
       (
-        writer->write("type t = ")->write(name)->write(";"),
-        [name, ...typeNamesToPutInTheHead],
+        writer
+        ->write("type t = ")
+        ->write({j|t_$normalizedName|j})
+        ->write(";"),
+        [headName, ...typeNamesToPutInTheHead],
       );
     } else {
       (writer->write("type t;"), typeNamesToPutInTheHead);
