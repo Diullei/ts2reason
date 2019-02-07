@@ -376,13 +376,15 @@ and createLiteralType =
                 |> Array.fold_left(
                      ((writer, disambiguate), member) =>
                        switch (member->TsNode.getKind) {
-                       | Ts.SyntaxKind.PropertySignature =>
+                       | Ts.SyntaxKind.PropertySignature
+                       | Ts.SyntaxKind.PropertyDeclaration =>
                          writer
                          ->writeNewLine
                          ->writeNewLine
                          ->writeGetSetFunction(member, tsNodes, disambiguate)
 
-                       | Ts.SyntaxKind.MethodSignature =>
+                       | Ts.SyntaxKind.MethodSignature
+                       | Ts.SyntaxKind.MethodDeclaration =>
                          writer
                          ->writeNewLine
                          ->writeNewLine

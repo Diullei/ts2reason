@@ -1084,3 +1084,61 @@ module InterfTyp = {
   )
 );
 
+describe("Class declaration 001", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare class ClassTyp { 
+                years: number; 
+                y: {a; b; c: boolean; d: number;};
+                send(): void;
+             }
+
+             declare const myVar: ClassTyp;
+             ",
+           )
+        // |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_ClassTyp;
+
+module ClassTyp = {
+  type t = t_ClassTyp;
+  
+  [@bs.get] external getYears: (t) => float = \"years\";
+  [@bs.send] external setYears: (t, float) => float = \"years\";
+  
+  module Y = {
+    type t;
+    
+    [@bs.get] external getA: (t) => 'any0 = \"a\";
+    [@bs.send] external setA: (t, 'any0) => 'any0 = \"a\";
+    
+    [@bs.get] external getB: (t) => 'any0 = \"b\";
+    [@bs.send] external setB: (t, 'any0) => 'any0 = \"b\";
+    
+    [@bs.get] external getC: (t) => bool = \"c\";
+    [@bs.send] external setC: (t, bool) => bool = \"c\";
+    
+    [@bs.get] external getD: (t) => float = \"d\";
+    [@bs.send] external setD: (t, float) => float = \"d\";
+  }
+  
+  [@bs.get] external getY: (t) => Y.t = \"y\";
+  [@bs.send] external setY: (t, Y.t) => Y.t = \"y\";
+  
+  [@bs.send] external send: (t) => unit = \"\";
+  
+}
+
+[@bs.val] external myVar: t_ClassTyp = \"\";
+
+",
+         )
+    )
+  )
+);
+

@@ -12,7 +12,10 @@ import {
     MethodSignature,
     PropertySignature,
     ParameterDeclaration,
-    InterfaceDeclaration
+    InterfaceDeclaration,
+    ClassDeclaration,
+    PropertyDeclaration,
+    MethodDeclaration
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -116,7 +119,7 @@ function buildParameter(p: ParameterDeclaration, ns: string[], checker: ts.TypeC
     };
 }
 
-function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
+function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
     switch (node.kind) {
         case SyntaxKind.PropertySignature:
             const propSign = node as PropertySignature;
@@ -154,6 +157,43 @@ function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker
                     .parameters
                     .map(p => buildParameter(p, ns, checker, tsNodes)),
             };
+
+        case SyntaxKind.PropertyDeclaration:
+            const propDecl = node as PropertyDeclaration;
+            // Skiping that cases for now.
+            if (node.name!.getText().indexOf('[') == 0
+                || node.name!.getText().indexOf('\'') == 0
+                || node.name!.getText().indexOf('\"') == 0) {
+                return null!;
+            }
+
+            return {
+                ns: normalizeNamespace(ns),
+                name: node.name!.getText(),
+                kind: node.kind,
+                type: buildType(ns, node, checker, tsNodes),
+                optional: propDecl.questionToken != null,
+                parameters: [],
+            };
+
+        case SyntaxKind.MethodDeclaration:
+            const methodDecl = node as MethodDeclaration;
+            // Skiping that cases for now.
+            if (node.name!.getText().indexOf('[') == 0
+                || node.name!.getText().indexOf('\'') == 0
+                || node.name!.getText().indexOf('\"') == 0) {
+                return null!;
+            }
+
+            return {
+                ns: normalizeNamespace(ns),
+                name: node.name!.getText(),
+                kind: node.kind,
+                type: buildType(ns, node, checker, tsNodes),
+                parameters: methodDecl
+                    .parameters
+                    .map(p => buildParameter(p, ns, checker, tsNodes)),
+            };
     }
     return null!;
 }
@@ -179,7 +219,7 @@ function buildTsNodeFromTypeAliasDeclaration(ns: string[], node: TypeAliasDeclar
         ns: normalizeNamespace(ns),
         name: node.name.getText(),
         kind: node.kind,
-        type: buildType(ns, node as any, checker, tsNodes),
+        type: buildType(ns, node, checker, tsNodes),
         parameters: [],
     });
 }
@@ -219,6 +259,20 @@ function buildTsNodeFromEnumDeclaration(ns: string[], node: EnumDeclaration, che
 }
 
 function buildTsNodeFromInterfaceDeclaration(ns: string[], node: InterfaceDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    tsNodes.push({
+        ns: normalizeNamespace(ns),
+        name: node.name!.getText(),
+        kind: node.kind,
+        type: {
+            ns: normalizeNamespace(ns),
+            typeKind: TypeKind.TypeLiteral,
+            members: node.members.map(m => buildMember(ns, m, checker, tsNodes)).filter(m => m != null)
+        },
+        parameters: [],
+    });
+}
+
+function buildTsNodeFromClassDeclaration(ns: string[], node: ClassDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
     tsNodes.push({
         ns: normalizeNamespace(ns),
         name: node.name!.getText(),
@@ -281,6 +335,10 @@ function extractTypes(program: Program, filename: string): TsNode[] {
 
             case SyntaxKind.InterfaceDeclaration:
                 buildTsNodeFromInterfaceDeclaration([], node as InterfaceDeclaration, checker, tsNodes);
+                break;
+
+            case SyntaxKind.ClassDeclaration:
+                buildTsNodeFromClassDeclaration([], node as ClassDeclaration, checker, tsNodes);
                 break;
 
             default:

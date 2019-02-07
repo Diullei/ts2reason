@@ -277,5 +277,36 @@ describe("Type declarations", () => {
       |> toEqual("years")
     )
   );
+
+  let node = extractTypesFromCode(
+               "declare class ClassTyp { years: number; y: number; };",
+             )[0];
+
+  Expect.(
+    test("extractTypesFromCode classDeclaration name", () =>
+      expect(node->TsNode.getName) |> toEqual("ClassTyp")
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode classDeclaration kind", () =>
+      expect(node->TsNode.getKind)
+      |> toEqual(SyntaxKind.ClassDeclaration)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode classDeclaration member count", () =>
+      expect(node->TsNode.getType->TsType.getMembers |> Array.length)
+      |> toEqual(2)
+    )
+  );
+
+  Expect.(
+    test("extractTypesFromCode classDeclaration member->[0]->name", () =>
+      expect(node->TsNode.getType->TsType.getMembers[0]->TsNode.getName)
+      |> toEqual("years")
+    )
+  );
 });
 

@@ -293,7 +293,8 @@ let tSCodeToReason = (tsNodes: Js.Array.t(TsNode.t), writer: writerState) => {
                  typeNamesToPutInTheHead,
                )
 
-             | SyntaxKind.InterfaceDeclaration =>
+             | SyntaxKind.InterfaceDeclaration
+             | SyntaxKind.ClassDeclaration =>
                node->convertInterfaceDeclaration(
                  tsNodes,
                  disambiguate,
