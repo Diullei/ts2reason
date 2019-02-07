@@ -124,6 +124,7 @@ let rec buildType =
           complement,
           [],
           false,
+          false,
         );
       (normalizedName ++ ".t", disambiguate, writer, indexAny);
     }
@@ -338,6 +339,7 @@ and createLiteralType =
       writer: writerState,
       typeNamesToPutInTheHead: list(string),
       addHeaderType: bool,
+      isClassOrInterface: bool,
     ) => {
   let (normalizedName, disambiguate) =
     Utils.createModuleName(ns, typeLabel, disambiguate);
@@ -353,7 +355,7 @@ and createLiteralType =
   let (writer, typeNamesToPutInTheHead) =
     if (addHeaderType) {
       let headName =
-        if (tsType->TsType.getMembers |> Array.length > 0) {
+        if (tsType->TsType.getMembers |> Array.length > 0 || isClassOrInterface) {
           {j|t_$normalizedName|j};
         } else {
           {j|t_$normalizedName = Js.Types.obj_val|j};

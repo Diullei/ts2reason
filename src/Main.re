@@ -23,6 +23,7 @@ let convertTypeAliasDeclaration =
       writer,
       typeNamesToPutInTheHead,
       true,
+      false,
     )
     |> (
       ((writer, typeNamesToPutInTheHead, _, disambiguate)) => (
@@ -85,6 +86,7 @@ let convertInterfaceDeclaration =
     disambiguate,
     writer,
     typeNamesToPutInTheHead,
+    true,
     true,
   )
   |> (

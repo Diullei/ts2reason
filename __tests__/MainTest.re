@@ -1058,7 +1058,7 @@ describe("Interface declaration 002", () =>
              declare const myVar: InterfTyp;
              ",
            )
-        // |> Utils.checkReasonCode,
+        |> Utils.checkReasonCode,
       )
       |> toEqual(
            "type t_InterfTyp;
@@ -1100,7 +1100,7 @@ describe("Class declaration 001", () =>
              declare const myVar: ClassTyp;
              ",
            )
-        // |> Utils.checkReasonCode,
+        |> Utils.checkReasonCode,
       )
       |> toEqual(
            "type t_ClassTyp;
@@ -1142,3 +1142,32 @@ module ClassTyp = {
   )
 );
 
+describe("Interface declaration - empty body", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare interface InterfTyp { 
+             }
+
+             declare const myVar: InterfTyp;
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_InterfTyp;
+
+module InterfTyp = {
+  type t = t_InterfTyp;
+}
+
+[@bs.val] external myVar: t_InterfTyp = \"\";
+
+",
+         )
+    )
+  )
+);
