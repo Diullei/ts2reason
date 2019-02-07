@@ -9,6 +9,11 @@ let reservedWords = [
   "then",
   "type",
   "as",
+  "assert",
+  "begin",
+  "end",
+  "of",
+  "open",
 ];
 
 let rec range = (start: int, end_: int) =>
@@ -53,7 +58,7 @@ let fixIfItsAReservedWork = (id: string) =>
   };
 
 let toUniqueName = (candidateName: string, usedNames: list(string)) => {
-  let name = candidateName->fixIfItsAReservedWork;
+  let name = normalizeName(candidateName->fixIfItsAReservedWork);
   let occurrence =
     usedNames
     |> List.filter(n => n == candidateName->fixIfItsAReservedWork)

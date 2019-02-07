@@ -390,6 +390,7 @@ and createLiteralType =
                              member,
                              tsNodes,
                              disambiguate,
+                             true,
                            )
 
                        | _ => (writer, disambiguate)
@@ -410,6 +411,7 @@ and writeFunctionDeclaration =
       node: TsNode.t,
       tsNodes: array(TsNode.t),
       disambiguate: list(string),
+      isMember: bool,
     ) => {
   let (name, disambiguate) =
     node->TsNode.getName->createUniqueName(disambiguate);
@@ -420,6 +422,7 @@ and writeFunctionDeclaration =
       tsNodes,
       setupWriterAs(writer),
       disambiguate,
+      isMember,
       0,
     );
   let (typeStr, disambiguate, complementWriter, _indexAny) =
@@ -435,7 +438,11 @@ and writeFunctionDeclaration =
   let writer =
     writer
     ->writeIf(complementWriter->hasContent, complementWriter->getCode, "")
-    ->write("[@bs.send] external ")
+    ->writeIf(
+        node->TsNode.getParameters |> Array.length == 0 && !isMember,
+        "[@bs.val] external ",
+        "[@bs.send] external ",
+      )
     ->write(name)
     ->write(": ")
     ->write(parsWriter->getCode)
@@ -453,10 +460,20 @@ and writeTypeArgumentsToFunctionDecl =
       tsNodes: array(TsNode.t),
       complementWriter: writerState,
       disambiguate: list(string),
+      isMember: bool,
       indexAny: int,
     )
     : (writerState, list(string), writerState, int) => {
-  let state = writer->write("(");
+  let state =
+    writer->writeIf(
+      isMember,
+      "(t",
+      if (pars |> Array.length == 0) {
+        "(unit";
+      } else {
+        "(";
+      },
+    );
   pars
   |> Array.fold_left(
        ((state, i, disambiguate, complementWriter, indexAny), par) => {
@@ -469,9 +486,10 @@ and writeTypeArgumentsToFunctionDecl =
              complementWriter,
              indexAny,
            );
+         let (parameterName, disambiguate) =
+           par->TsParameter.getName->createUniqueName(disambiguate);
          (
            if (par->TsParameter.isOptional) {
-             let parameterName = par->TsParameter.getName;
              state->writeIf(
                i == 0,
                {j|~$parameterName: $typeStr=?|j},
@@ -486,7 +504,13 @@ and writeTypeArgumentsToFunctionDecl =
            indexAny,
          );
        },
-       (state, 0, disambiguate, complementWriter, indexAny),
+       (
+         state,
+         if (isMember) {1} else {0},
+         disambiguate,
+         complementWriter,
+         indexAny,
+       ),
      )
   |> (
     ((s, _, disambiguate, complement, indexAny)) => (

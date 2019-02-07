@@ -181,7 +181,7 @@ describe("Writer", () => {
     testAll(
       "writeTypeArgumentsToFunctionDecl",
       [
-        ([||], "()"),
+        ([||], "(unit)"),
         (
           [|
             makeFakeTsParDec("param01", "number"),
@@ -199,6 +199,7 @@ describe("Writer", () => {
               [||],
               Writer.make(~nl=eol, ~code="", ~currentIdentation=0),
               [],
+              false,
               0,
             );
 

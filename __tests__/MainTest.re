@@ -872,7 +872,7 @@ describe("Var declaration binding a literal type - 004", () =>
   [@bs.get] external getName: (t) => Js.Array.t(string) = \"name\";
   [@bs.send] external setName: (t, Js.Array.t(string)) => Js.Array.t(string) = \"name\";
   
-  [@bs.send] external greet: (string) => unit = \"\";
+  [@bs.send] external greet: (t, string) => unit = \"\";
   
 }
 
@@ -1032,6 +1032,48 @@ module InterfTyp = {
   
   [@bs.get] external getY: (t) => float = \"y\";
   [@bs.send] external setY: (t, float) => float = \"y\";
+}
+
+[@bs.val] external myVar: t_InterfTyp = \"\";
+
+",
+         )
+    )
+  )
+);
+
+describe("Interface declaration 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare interface InterfTyp { 
+                years: number; 
+                y: number;
+                send(): void;
+             }
+
+             declare const myVar: InterfTyp;
+             ",
+           )
+        // |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_InterfTyp;
+
+module InterfTyp = {
+  type t = t_InterfTyp;
+  
+  [@bs.get] external getYears: (t) => float = \"years\";
+  [@bs.send] external setYears: (t, float) => float = \"years\";
+  
+  [@bs.get] external getY: (t) => float = \"y\";
+  [@bs.send] external setY: (t, float) => float = \"y\";
+  
+  [@bs.send] external send: (t) => unit = \"\";
+  
 }
 
 [@bs.val] external myVar: t_InterfTyp = \"\";

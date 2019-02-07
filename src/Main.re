@@ -159,7 +159,7 @@ let convertFunctionDeclaration =
       typeNamesToPutInTheHead: list(string),
     ) => {
   let (writer, disambiguate) =
-    writer->writeFunctionDeclaration(node, tsNodes, disambiguate);
+    writer->writeFunctionDeclaration(node, tsNodes, disambiguate, false);
   (writer, typeNamesToPutInTheHead, disambiguate);
 };
 

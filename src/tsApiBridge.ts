@@ -120,6 +120,13 @@ function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker
     switch (node.kind) {
         case SyntaxKind.PropertySignature:
             const propSign = node as PropertySignature;
+            // Skiping that cases for now.
+            if (node.name!.getText().indexOf('[') == 0
+                || node.name!.getText().indexOf('\'') == 0
+                || node.name!.getText().indexOf('\"') == 0) {
+                return null!;
+            }
+
             return {
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
@@ -131,6 +138,13 @@ function buildMember(ns: string[], node: ts.TypeElement, checker: ts.TypeChecker
 
         case SyntaxKind.MethodSignature:
             const methodSign = node as MethodSignature;
+            // Skiping that cases for now.
+            if (node.name!.getText().indexOf('[') == 0
+                || node.name!.getText().indexOf('\'') == 0
+                || node.name!.getText().indexOf('\"') == 0) {
+                return null!;
+            }
+
             return {
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
