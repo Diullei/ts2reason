@@ -4,6 +4,7 @@ type t_tsType;
 type t_tsParameter;
 type t_tsEnumMember;
 type t_tsNode;
+type t_tsTypeParameter;
 
 module TypeKind = {
   [@bs.deriving jsConverter]
@@ -25,6 +26,7 @@ module TsType = {
   [@bs.get] external getArrayType: t => t = "arrayType";
   [@bs.get] external getTupleTypes: t => Js.Array.t(t) = "tupleTypes";
   [@bs.get] external getMembers: t => Js.Array.t(t_tsNode) = "members";
+  [@bs.get] external isGeneric: t => bool = "isGeneric";
 };
 
 module TsParameter = {
@@ -36,7 +38,7 @@ module TsParameter = {
 };
 
 module TsEnumMember = {
-  type t = t_tsEnumMember;
+  type t = t_tsTypeParameter;
 
   [@bs.get] external getName: t => string = "name";
 };

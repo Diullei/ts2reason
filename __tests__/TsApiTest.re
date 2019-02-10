@@ -290,8 +290,7 @@ describe("Type declarations", () => {
 
   Expect.(
     test("extractTypesFromCode classDeclaration kind", () =>
-      expect(node->TsNode.getKind)
-      |> toEqual(SyntaxKind.ClassDeclaration)
+      expect(node->TsNode.getKind) |> toEqual(SyntaxKind.ClassDeclaration)
     )
   );
 
@@ -309,4 +308,3 @@ describe("Type declarations", () => {
     )
   );
 });
-

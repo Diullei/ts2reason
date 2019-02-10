@@ -1171,3 +1171,211 @@ module InterfTyp = {
     )
   )
 );
+
+describe("type parameter 001", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare function getValue<T, R extends Object>(arg: T);
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.send] external getValue: ('t) => 'any0 = \"\";
+
+",
+         )
+    )
+  )
+);
+
+describe("type parameter 002", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare function getValue<T, R extends Object>(arg: T, arg2: R, arg3: T);
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "[@bs.send] external getValue: ('t, 'r, 't) => 'any0 = \"\";
+
+",
+         )
+    )
+  )
+);
+
+describe("type parameter 003", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare type GTyp<T> = {name: T};
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_GTyp;
+
+module GTyp = {
+  type t = t_GTyp;
+  
+  [@bs.get] external getName: (t) => 't = \"name\";
+  [@bs.send] external setName: (t, 't) => 't = \"name\";
+}
+
+",
+         )
+    )
+  )
+);
+
+describe("type parameter 004", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare type GTyp<T, A> = {name: T; value: A};
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_GTyp;
+
+module GTyp = {
+  type t = t_GTyp;
+  
+  [@bs.get] external getName: (t) => 't = \"name\";
+  [@bs.send] external setName: (t, 't) => 't = \"name\";
+  
+  [@bs.get] external getValue: (t) => 'a = \"value\";
+  [@bs.send] external setValue: (t, 'a) => 'a = \"value\";
+}
+
+",
+         )
+    )
+  )
+);
+
+describe("type parameter 005", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare interface GTyp<T, A> { 
+               name: T; 
+               fn: (a :T, b: string) => A; 
+             }
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_GTyp;
+
+module GTyp = {
+  type t = t_GTyp;
+  
+  [@bs.get] external getName: (t) => 't = \"name\";
+  [@bs.send] external setName: (t, 't) => 't = \"name\";
+  
+  [@bs.send] external fn: (t, 't, string) => 'a = \"\";
+  
+}
+
+",
+         )
+    )
+  )
+);
+
+describe("type parameter 005", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare interface GTyp<T, A> { 
+               name: [T[], A[][]]; 
+             }
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_GTyp;
+
+module GTyp = {
+  type t = t_GTyp;
+  
+  [@bs.get] external getName: (t) => (Js.Array.t('t), Js.Array.t(Js.Array.t('a))) = \"name\";
+  [@bs.send] external setName: (t, (Js.Array.t('t), Js.Array.t(Js.Array.t('a)))) => (Js.Array.t('t), Js.Array.t(Js.Array.t('a))) = \"name\";
+}
+
+",
+         )
+    )
+  )
+);
+
+describe("type parameter 006", () =>
+  Expect.(
+    test("convertCodeToReason", () =>
+      expect(
+        Writer.make(~nl=eol, ~code="", ~currentIdentation=0)
+        |> Main.convertCodeToReason(
+             "
+             declare interface GTyp<T, A> { 
+               data: {val1: T; val2: A; val3: T}; 
+             }
+             ",
+           )
+        |> Utils.checkReasonCode,
+      )
+      |> toEqual(
+           "type t_GTyp;
+
+module GTyp = {
+  type t = t_GTyp;
+  
+  module Data = {
+    type t;
+    
+    [@bs.get] external getVal1: (t) => 't = \"val1\";
+    [@bs.send] external setVal1: (t, 't) => 't = \"val1\";
+    
+    [@bs.get] external getVal2: (t) => 'a = \"val2\";
+    [@bs.send] external setVal2: (t, 'a) => 'a = \"val2\";
+    
+    [@bs.get] external getVal3: (t) => 't = \"val3\";
+    [@bs.send] external setVal3: (t, 't) => 't = \"val3\";
+  }
+  
+  [@bs.get] external getData: (t) => Data.t = \"data\";
+  [@bs.send] external setData: (t, Data.t) => Data.t = \"data\";
+}
+
+",
+         )
+    )
+  )
+);

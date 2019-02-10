@@ -15,7 +15,8 @@ import {
     InterfaceDeclaration,
     ClassDeclaration,
     PropertyDeclaration,
-    MethodDeclaration
+    MethodDeclaration,
+    FunctionTypeNode
 } from 'typescript';
 import ts from 'typescript';
 import * as fs from 'fs';
@@ -47,6 +48,11 @@ interface TsType {
     arrayType?: TsType;
     tupleTypes?: TsType[];
     members?: TsNode[];
+    isGeneric?: boolean;
+}
+
+interface TsTypeParameter {
+    name: string;
 }
 
 interface TsNode {
@@ -66,7 +72,7 @@ function normalizeNamespace(ns: string[]) {
     return ns.length == 0 ? [] : ns.slice(0, ns.length - 1);
 }
 
-function buildType(ns: string[], node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildType(ns: string[], node: WithType, checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]): TsType {
     ns = ns.concat(node.name ? [node.name.getText()] : []);
 
     if (!node.type) {
@@ -79,47 +85,47 @@ function buildType(ns: string[], node: WithType, checker: ts.TypeChecker, tsNode
 
     switch (node.type.kind) {
         case SyntaxKind.ParenthesizedType:
-            return buildType(ns, node.type as any, checker, tsNodes);
+            return buildType(ns, node.type as any, checker, tsNodes, typeParameters);
 
         case SyntaxKind.ArrayType:
-            return buildArrayType(ns, node.type as any, checker, tsNodes);
+            return buildArrayType(ns, node.type as any, checker, tsNodes, typeParameters);
 
         case SyntaxKind.TupleType:
-            return buildTupleType(ns, node.type as any, checker, tsNodes);
+            return buildTupleType(ns, node.type as any, checker, tsNodes, typeParameters);
 
         case SyntaxKind.TypeLiteral:
-            return buildTypeLiteral(ns, node.type as any, checker, tsNodes);
+            return buildTypeLiteral(ns, node.type as any, checker, tsNodes, typeParameters);
 
         default:
-            return buildRegularType(ns, node.type as any, checker, tsNodes);
+            return buildRegularType(ns, node.type as any, checker, tsNodes, typeParameters);
     }
 }
 
-function buildTupleType(ns: string[], node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildTupleType(ns: string[], node: TupleTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]): TsType {
     return {
         ns: normalizeNamespace(ns),
         typeKind: TypeKind.Tuple,
-        tupleTypes: node.elementTypes.map(et => buildType(ns, { type: et }, checker, tsNodes))
+        tupleTypes: node.elementTypes.map(et => buildType(ns, { type: et }, checker, tsNodes, typeParameters))
     };
 }
 
-function buildArrayType(ns: string[], node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildArrayType(ns: string[], node: ArrayTypeNode, checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]): TsType {
     return {
         ns: normalizeNamespace(ns),
         typeKind: TypeKind.Array,
-        arrayType: buildType(ns, { type: node.elementType }, checker, tsNodes),
+        arrayType: buildType(ns, { type: node.elementType }, checker, tsNodes, typeParameters),
     };
 }
 
-function buildParameter(p: ParameterDeclaration, ns: string[], checker: ts.TypeChecker, tsNodes: TsNode[]) {
+function buildParameter(p: ParameterDeclaration, ns: string[], checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]) {
     return {
         name: p.name.getText(),
-        type: buildType(ns, p as any, checker, tsNodes),
+        type: buildType(ns, p as any, checker, tsNodes, typeParameters),
         optional: p.questionToken != null,
     };
 }
 
-function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: TsNode[]): TsNode {
+function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]): TsNode {
     switch (node.kind) {
         case SyntaxKind.PropertySignature:
             const propSign = node as PropertySignature;
@@ -130,11 +136,25 @@ function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: 
                 return null!;
             }
 
+            if (node.type && node.type.kind == SyntaxKind.FunctionType) {
+                const fnType = node.type as FunctionTypeNode;
+                const fnTypeParameters: TsTypeParameter[] = !fnType.typeParameters ? [] : fnType.typeParameters.map(tp => ({ name: tp.name.getText() }))
+                return {
+                    ns: normalizeNamespace(ns),
+                    name: node.name!.getText(),
+                    kind: SyntaxKind.MethodSignature,
+                    type: buildType(ns, fnType as any, checker, tsNodes, typeParameters.concat(fnTypeParameters)),
+                    parameters: fnType
+                        .parameters
+                        .map(p => buildParameter(p, ns, checker, tsNodes, typeParameters.concat(fnTypeParameters))),
+                };
+            }
+
             return {
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
                 kind: node.kind,
-                type: buildType(ns, node as any, checker, tsNodes),
+                type: buildType(ns, node as any, checker, tsNodes, typeParameters),
                 optional: propSign.questionToken != null,
                 parameters: [],
             };
@@ -148,14 +168,15 @@ function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: 
                 return null!;
             }
 
+            const methodSignTypeParameters: TsTypeParameter[] = !methodSign.typeParameters ? [] : methodSign.typeParameters.map(tp => ({ name: tp.name.getText() }))
             return {
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
                 kind: node.kind,
-                type: buildType(ns, node as any, checker, tsNodes),
+                type: buildType(ns, node as any, checker, tsNodes, typeParameters.concat(methodSignTypeParameters)),
                 parameters: methodSign
                     .parameters
-                    .map(p => buildParameter(p, ns, checker, tsNodes)),
+                    .map(p => buildParameter(p, ns, checker, tsNodes, typeParameters.concat(methodSignTypeParameters))),
             };
 
         case SyntaxKind.PropertyDeclaration:
@@ -171,13 +192,15 @@ function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: 
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
                 kind: node.kind,
-                type: buildType(ns, node, checker, tsNodes),
+                type: buildType(ns, node, checker, tsNodes, []),
                 optional: propDecl.questionToken != null,
                 parameters: [],
             };
 
         case SyntaxKind.MethodDeclaration:
             const methodDecl = node as MethodDeclaration;
+            const methodDeclTypeParameters: TsTypeParameter[] = !methodDecl.typeParameters ? [] : methodDecl.typeParameters.map(tp => ({ name: tp.name.getText() }))
+
             // Skiping that cases for now.
             if (node.name!.getText().indexOf('[') == 0
                 || node.name!.getText().indexOf('\'') == 0
@@ -189,37 +212,39 @@ function buildMember(ns: string[], node: any, checker: ts.TypeChecker, tsNodes: 
                 ns: normalizeNamespace(ns),
                 name: node.name!.getText(),
                 kind: node.kind,
-                type: buildType(ns, node, checker, tsNodes),
+                type: buildType(ns, node, checker, tsNodes, typeParameters.concat(methodDeclTypeParameters)),
                 parameters: methodDecl
                     .parameters
-                    .map(p => buildParameter(p, ns, checker, tsNodes)),
+                    .map(p => buildParameter(p, ns, checker, tsNodes, typeParameters.concat(methodDeclTypeParameters))),
             };
     }
     return null!;
 }
 
-function buildTypeLiteral(ns: string[], node: TypeLiteralNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildTypeLiteral(ns: string[], node: TypeLiteralNode, checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]): TsType {
     return {
         ns: normalizeNamespace(ns),
         typeKind: TypeKind.TypeLiteral,
-        members: node.members.map(m => buildMember(ns, m, checker, tsNodes)).filter(m => m != null)
+        members: node.members.map(m => buildMember(ns, m, checker, tsNodes, typeParameters)).filter(m => m != null)
     };
 }
 
-function buildRegularType(ns: string[], node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[]): TsType {
+function buildRegularType(ns: string[], node: TypeNode, checker: ts.TypeChecker, tsNodes: TsNode[], typeParameters: TsTypeParameter[]): TsType {
     return {
         ns: normalizeNamespace(ns),
         name: node.getText(),
         typeKind: TypeKind.Regular,
+        isGeneric: typeParameters.filter(tp => tp.name == node.getText()).length > 0
     };
 }
 
 function buildTsNodeFromTypeAliasDeclaration(ns: string[], node: TypeAliasDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    const typeParameters: TsTypeParameter[] = !node.typeParameters ? [] : node.typeParameters.map(tp => ({ name: tp.name.getText() }));
     tsNodes.push({
         ns: normalizeNamespace(ns),
         name: node.name.getText(),
         kind: node.kind,
-        type: buildType(ns, node, checker, tsNodes),
+        type: buildType(ns, node, checker, tsNodes, typeParameters),
         parameters: [],
     });
 }
@@ -229,21 +254,22 @@ function buildTsNodeFromVariableDeclaration(ns: string[], node: VariableDeclarat
         ns: normalizeNamespace(ns),
         name: node.name.getText(),
         kind: node.kind,
-        type: buildType(ns, node as any, checker, tsNodes),
+        type: buildType(ns, node as any, checker, tsNodes, []),
         parameters: [],
         isConst,
     });
 }
 
 function buildTsNodeFromFunctionDeclaration(ns: string[], node: FunctionDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    const typeParameters: TsTypeParameter[] = !node.typeParameters ? [] : node.typeParameters.map(tp => ({ name: tp.name.getText() }));
     tsNodes.push({
         ns: normalizeNamespace(ns),
         name: node.name!.getText(),
         kind: node.kind,
-        type: buildType(ns, node as any, checker, tsNodes),
+        type: buildType(ns, node as any, checker, tsNodes, typeParameters),
         parameters: node
             .parameters
-            .map(p => buildParameter(p, ns, checker, tsNodes)),
+            .map(p => buildParameter(p, ns, checker, tsNodes, typeParameters)),
     });
 }
 
@@ -259,6 +285,7 @@ function buildTsNodeFromEnumDeclaration(ns: string[], node: EnumDeclaration, che
 }
 
 function buildTsNodeFromInterfaceDeclaration(ns: string[], node: InterfaceDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    const typeParameters: TsTypeParameter[] = !node.typeParameters ? [] : node.typeParameters.map(tp => ({ name: tp.name.getText() }));
     tsNodes.push({
         ns: normalizeNamespace(ns),
         name: node.name!.getText(),
@@ -266,13 +293,14 @@ function buildTsNodeFromInterfaceDeclaration(ns: string[], node: InterfaceDeclar
         type: {
             ns: normalizeNamespace(ns),
             typeKind: TypeKind.TypeLiteral,
-            members: node.members.map(m => buildMember(ns, m, checker, tsNodes)).filter(m => m != null)
+            members: node.members.map(m => buildMember(ns, m, checker, tsNodes, typeParameters)).filter(m => m != null)
         },
         parameters: [],
     });
 }
 
 function buildTsNodeFromClassDeclaration(ns: string[], node: ClassDeclaration, checker: ts.TypeChecker, tsNodes: TsNode[]) {
+    const typeParameters: TsTypeParameter[] = !node.typeParameters ? [] : node.typeParameters.map(tp => ({ name: tp.name.getText() }));
     tsNodes.push({
         ns: normalizeNamespace(ns),
         name: node.name!.getText(),
@@ -280,7 +308,7 @@ function buildTsNodeFromClassDeclaration(ns: string[], node: ClassDeclaration, c
         type: {
             ns: normalizeNamespace(ns),
             typeKind: TypeKind.TypeLiteral,
-            members: node.members.map(m => buildMember(ns, m, checker, tsNodes)).filter(m => m != null)
+            members: node.members.map(m => buildMember(ns, m, checker, tsNodes, typeParameters)).filter(m => m != null)
         },
         parameters: [],
     });

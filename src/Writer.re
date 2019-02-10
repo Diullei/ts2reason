@@ -129,19 +129,28 @@ let rec buildType =
       (normalizedName ++ ".t", disambiguate, writer, indexAny);
     }
   | _ =>
-    switch (writer->writePredefinedType(tsType, indexAny)) {
-    | Some((state, indexAny)) => (
-        state->getCode,
+    if (tsType->TsType.isGeneric) {
+      (
+        "'" ++ tsType->TsType.getName |> String.lowercase,
         disambiguate,
         complementWriter,
         indexAny,
-      )
-    | None => (
-        writer->writeReferenceType(tsType, tsNodes)->getCode,
-        disambiguate,
-        complementWriter,
-        indexAny,
-      )
+      );
+    } else {
+      switch (writer->writePredefinedType(tsType, indexAny)) {
+      | Some((state, indexAny)) => (
+          state->getCode,
+          disambiguate,
+          complementWriter,
+          indexAny,
+        )
+      | None => (
+          writer->writeReferenceType(tsType, tsNodes)->getCode,
+          disambiguate,
+          complementWriter,
+          indexAny,
+        )
+      };
     }
   };
 }
@@ -268,7 +277,7 @@ and createMemberGetFunction =
       disambiguate: list(string),
     ) => {
   let (name, disambiguate) = node->createGetName(disambiguate);
-  let (typeStr, disambiguate, complementWriter, indexAny) =
+  let (typeStr, disambiguate, complementWriter, _indexAny) =
     writer->buildType(
       node->TsNode.getName,
       node->TsNode.getType,
